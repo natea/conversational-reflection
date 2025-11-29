@@ -71,10 +71,11 @@ async function getMessages(args: {
   since?: string;
   limit?: number;
   unread_only?: boolean;
+  include_own_messages?: boolean;
 }): Promise<{ messages: IMessage[]; total: number }> {
   ensureIMessageAvailable();
 
-  const { contact, since, limit = 50, unread_only = false } = args;
+  const { contact, since, limit = 50, unread_only = false, include_own_messages = true } = args;
 
   try {
     // Parse since date if provided
@@ -95,6 +96,7 @@ async function getMessages(args: {
       limit,
       since: sinceDate,
       unreadOnly: unread_only,
+      excludeOwnMessages: !include_own_messages,
     };
 
     // If contact is provided, use it as sender filter
@@ -266,6 +268,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'boolean',
               description: 'Only return unread messages (default: false)',
               default: false,
+            },
+            include_own_messages: {
+              type: 'boolean',
+              description: 'Include messages sent by you (default: true)',
+              default: true,
             },
           },
         },
