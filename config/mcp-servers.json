@@ -1,0 +1,55 @@
+{
+  "mcpServers": {
+    "imessage": {
+      "command": "node",
+      "args": ["./src/mcp-servers/imessage-mcp/dist/index.js"],
+      "type": "stdio",
+      "description": "iMessage access via imessage-kit",
+      "tools": ["get_messages", "list_chats", "watch_messages"],
+      "requirements": {
+        "platform": "darwin",
+        "permissions": ["Full Disk Access"]
+      }
+    },
+    "sable": {
+      "command": "node",
+      "args": ["./src/mcp-servers/sable-mcp/dist/index.js"],
+      "type": "stdio",
+      "description": "Emotional analysis via Sable (Her) CLI",
+      "tools": [
+        "analyze_emotion",
+        "feel_emotion",
+        "get_emotional_state",
+        "record_memory",
+        "query_memories",
+        "check_somatic_markers"
+      ]
+    },
+    "maya-tts": {
+      "command": "node",
+      "args": ["./src/mcp-servers/maya-tts-mcp/dist/index.js"],
+      "type": "stdio",
+      "description": "Expressive voice synthesis via Maya1",
+      "tools": ["speak_as_contact", "speak_reflection", "preview_voice"],
+      "requirements": {
+        "python": "3.10+",
+        "gpu": "optional (16GB+ VRAM recommended)"
+      }
+    }
+  },
+  "integration": {
+    "private-journal": {
+      "command": "npx",
+      "args": ["github:natea/private-journal-mcp"],
+      "type": "stdio",
+      "description": "Semantic journal entries for reflections"
+    }
+  },
+  "orchestration": {
+    "claude-flow": {
+      "command": "npx",
+      "args": ["claude-flow@alpha", "mcp", "start"],
+      "type": "stdio"
+    }
+  }
+}

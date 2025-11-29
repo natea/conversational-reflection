@@ -1,0 +1,36 @@
+{
+  "name": "conversational-reflection",
+  "version": "1.0.0",
+  "description": "AI companion for iMessage analysis with emotional consciousness and voice synthesis",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:imessage": "vitest run tests/imessage-kit.test.ts",
+    "test:journal": "vitest run tests/private-journal.test.ts",
+    "test:sable": "vitest run tests/sable.test.ts",
+    "test:maya": "vitest run tests/maya.test.ts",
+    "test:all": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  },
+  "optionalDependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@photon-ai/imessage-kit": "^0.1.0",
+    "better-sqlite3": "^11.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
