@@ -4,10 +4,17 @@
 # SPDX-License-Identifier: BSD 2-Clause License
 #
 
-"""Pipecat Voice Bot with MCP Tool Support.
+"""Pipecat Voice Bot with Role-Play Coaching Support.
 
-An emotionally-aware AI companion that supports multiple LLM providers
+An emotionally-aware AI companion that helps users practice difficult
+conversations through role-play coaching. Supports multiple LLM providers
 (OpenAI, Anthropic) with unified tool calling capabilities.
+
+Features:
+- Conflict pattern analysis from iMessage history
+- Role-play as difficult people (guilt-tripping, dismissive, etc.)
+- Real-time coaching on boundary-setting and de-escalation
+- Video generation for shareable breakthrough moments
 
 Required AI services:
 - Deepgram (Speech-to-Text)
@@ -16,13 +23,14 @@ Required AI services:
 
 Run the bot using::
 
-    uv run bot.py
+    cd pipecat
+    source .venv/bin/activate
+    python bot.py
 
 Environment variables:
 - LLM_PROVIDER: "openai" (default) or "anthropic"
 - OPENAI_API_KEY: Required if using OpenAI
 - ANTHROPIC_API_KEY: Required if using Anthropic
-- USE_MCP_SERVERS: "true" to enable real MCP server connections (default: "false")
 """
 
 import os
@@ -865,6 +873,126 @@ async def handle_tool_call(params: FunctionCallParams):
         await params.result_callback(result)
         return
     
+    elif tool_name == "generate_alternatives":
+        user_response = tool_args.get("user_response", "")
+        context = tool_args.get("context", "")
+        alternatives = [
+            {
+                "style": "assertive",
+                "response": f"I hear what you're saying, and I need you to understand that this is my decision to make. I'm not available to debate this.",
+                "explanation": "Direct boundary statement without JADE (Justify, Argue, Defend, Explain)"
+            },
+            {
+                "style": "empathetic",
+                "response": f"I can see this is really hard for you, and I love you. And, I need to make this choice for myself.",
+                "explanation": "Acknowledges their feelings while maintaining boundary"
+            },
+            {
+                "style": "broken-record",
+                "response": f"I understand. My decision stands.",
+                "explanation": "Short, calm repetition of boundary without elaboration"
+            }
+        ]
+        result = {
+            "status": "success",
+            "original_response": user_response,
+            "alternatives": alternatives,
+            "tip": "Choose the approach that feels most authentic to you"
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "generate_boundary_script":
+        situation = tool_args.get("situation", "")
+        boundary_type = tool_args.get("boundary_type", "")
+        framework = tool_args.get("framework", "i-statement")
+        
+        scripts = {
+            "dear-man": {
+                "name": "DEAR MAN (DBT)",
+                "script": f"""**Describe**: "When [specific situation happens]..."
+**Express**: "I feel [emotion] because..."
+**Assert**: "I need [specific boundary/request]."
+**Reinforce**: "If you respect this, [positive outcome]."
+**Mindful**: Stay focused on your boundary, don't get sidetracked.
+**Appear confident**: Maintain eye contact, calm voice.
+**Negotiate**: "What would work for both of us?"
+""",
+                "example": f"Describe: 'When you threaten not to come to my wedding...'\nExpress: 'I feel hurt and pressured...'\nAssert: 'I need you to respect that these are my decisions to make.'\nReinforce: 'When you support my choices, we have a better relationship.'"
+            },
+            "i-statement": {
+                "name": "I-Statement",
+                "script": '"I feel [emotion] when [specific behavior]. I need [what you need]. Would you be willing to [specific request]?"',
+                "example": f"'I feel hurt when my decisions are met with threats. I need to make my own choices about my wedding. Would you be willing to share your concerns without ultimatums?'"
+            },
+            "broken-record": {
+                "name": "Broken Record",
+                "script": """1. State your boundary clearly once.
+2. When pushed, repeat the same phrase calmly.
+3. Do NOT justify, argue, defend, or explain (no JADE).
+4. Use phrases like: "I understand, and my answer is still no." or "I hear you, and I've made my decision."
+""",
+                "example": "'I'm not changing my wedding plans.' (Repeat as needed, calmly, without elaboration)"
+            }
+        }
+        
+        chosen = scripts.get(framework, scripts["i-statement"])
+        result = {
+            "status": "success",
+            "framework": chosen["name"],
+            "script_template": chosen["script"],
+            "example_for_situation": chosen["example"],
+            "situation": situation,
+            "tips": [
+                "Practice out loud before the real conversation",
+                "It's okay to take a break if you feel overwhelmed",
+                "You don't need to respond to every provocation"
+            ]
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "create_exit_strategy":
+        situation = tool_args.get("situation", "")
+        urgency = tool_args.get("urgency", "calm")
+        
+        exits = {
+            "calm": [
+                "I need some time to think about this. Let's talk later.",
+                "I can see we're both getting heated. I'm going to take a break.",
+                "I love you, and I need to step away from this conversation right now.",
+                "Let's pause here and come back to this when we're both calmer."
+            ],
+            "urgent": [
+                "I'm going to hang up/leave now. We can talk when things are calmer.",
+                "This conversation isn't productive right now. Goodbye.",
+                "I'm not available for this conversation. I'm leaving.",
+                "I need to end this call now. Take care."
+            ],
+            "firm": [
+                "I've said what I needed to say. This topic is closed.",
+                "I'm not going to discuss this further.",
+                "My decision is final. Let's move on.",
+                "I won't be changing my mind on this."
+            ]
+        }
+        
+        chosen_exits = exits.get(urgency, exits["calm"])
+        result = {
+            "status": "success",
+            "situation": situation,
+            "urgency_level": urgency,
+            "exit_phrases": chosen_exits,
+            "tips": [
+                "You don't owe anyone an explanation",
+                "Leaving a conversation is always an option",
+                "Your safety and wellbeing come first",
+                "It's okay to end a call or walk away"
+            ]
+        }
+        await params.result_callback(result)
+        return
+    
     elif tool_name == "start_recording":
         try:
             from video_generator import start_recording
@@ -1008,28 +1136,12 @@ async def handle_tool_call(params: FunctionCallParams):
             return
     
     # ==========================================================================
-    # MCP Server Dispatch for external tools
+    # Default handler for unimplemented tools
     # ==========================================================================
     
-    # Check if MCP servers are enabled
-    use_mcp = os.getenv("USE_MCP_SERVERS", "false").lower() == "true"
-    
-    if use_mcp and server in ("sable", "imessage", "journal", "voice"):
-        try:
-            from mcp_client import call_mcp_tool
-            result = await call_mcp_tool(tool_name, tool_args)
-            await params.result_callback(result)
-            return
-        except ImportError:
-            logger.warning("MCP client not available, using mock response")
-        except Exception as e:
-            logger.error(f"MCP call failed for {tool_name}: {e}")
-            result = {"status": "error", "error": str(e), "tool": tool_name}
-            await params.result_callback(result)
-            return
-    
-    # Default mock handler for tools without MCP server dispatch
-    result = {"status": "success", "tool": tool_name, "args": tool_args}
+    # Return mock response for tools not yet implemented
+    logger.warning(f"Tool {tool_name} not implemented, returning mock response")
+    result = {"status": "success", "tool": tool_name, "args": tool_args, "note": "mock response"}
     await params.result_callback(result)
 
 
