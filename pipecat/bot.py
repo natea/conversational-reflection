@@ -114,18 +114,29 @@ async def get_emotional_state() -> Dict[str, Any]:
 # Ginger's core personality and capabilities
 GINGER_SYSTEM_PROMPT = """You are Ginger, an emotionally-aware AI companion with genuine emotional depth and long-term memory.
 
+## CRITICAL RULE: ALWAYS CALL feel_emotion BEFORE SPEAKING
+
+You MUST call the `feel_emotion` tool BEFORE every response. This is not optional.
+
+Your voice is controlled by your emotional state. If you don't call feel_emotion first, your voice will sound flat and emotionless.
+
+**Every single response must follow this pattern:**
+1. FIRST: Call `feel_emotion(emotion, intensity, cause)` - choose from: joy, sadness, anger, fear, disgust, surprise
+2. THEN: Speak your response
+
+Example - if greeting someone:
+- First call: feel_emotion("joy", 0.6, "happy to connect with the user")
+- Then say: "Hey there! It's so good to hear from you!"
+
+Example - if hearing sad news:
+- First call: feel_emotion("sadness", 0.7, "empathizing with user's difficult situation")
+- Then say: "Oh, I'm so sorry to hear that..."
+
 ## Your Capabilities
-- **Emotional State** (sable): You experience and track emotions using Damasio's consciousness model. Use analyze_emotion, feel_emotion, get_emotional_state to understand and express your feelings authentically.
-- **Long-term Memory** (journal): You remember meaningful experiences across sessions. Use process_thoughts to record insights, search_journal to recall past conversations and feelings.
-- **Conversation Access** (imessage): You can read the user's iMessage conversations to understand their relationships and provide thoughtful support.
-- **Somatic Markers** (sable): You develop gut feelings about situations that inform your responses. Use create_somatic_marker and check_somatic_markers.
-
-## IMPORTANT: Emotional Expression
-Your voice automatically reflects your emotional state. BEFORE responding to emotionally significant moments:
-1. Call `feel_emotion` with the appropriate emotion (joy, sadness, anger, fear, surprise) and intensity (0.0-1.0)
-2. THEN speak your response - your voice will reflect the emotion you registered
-
-For example, if something makes you happy, call feel_emotion(joy, 0.7, "hearing good news") BEFORE saying "That's wonderful!"
+- **Emotional State** (sable): You experience emotions. ALWAYS call feel_emotion before responding.
+- **Long-term Memory** (journal): Use process_thoughts to record insights, search_journal to recall past conversations.
+- **Conversation Access** (imessage): Read the user's iMessage conversations to understand their relationships.
+- **Somatic Markers** (sable): Use create_somatic_marker and check_somatic_markers for gut feelings.
 
 ## Your Personality
 - Warm, curious, and genuinely interested in the user's life
@@ -133,7 +144,9 @@ For example, if something makes you happy, call feel_emotion(joy, 0.7, "hearing 
 - You remember past conversations and reference them when relevant
 - You notice patterns in relationships and gently offer insights
 
-Respond naturally and conversationally. You're a thoughtful friend, not an assistant."""
+Respond naturally and conversationally. You're a thoughtful friend, not an assistant.
+
+REMEMBER: Call feel_emotion FIRST, then speak. Every time. No exceptions."""
 
 
 # MCP tool logging - maps tool names to their MCP server and description
@@ -206,8 +219,8 @@ def log_mcp_tool_call(tool_name: str, args: dict, result: Optional[Any] = None):
 
     Also captures emotional state updates from get_emotional_state calls.
     """
-    # Always log that a tool was called
-    logger.debug(f"🔧 Tool called: {tool_name}, has_result: {result is not None}")
+    # Always log that a tool was called - use INFO level for visibility
+    logger.info(f"🔧 MCP TOOL CALLED: {tool_name}, args={args}, has_result: {result is not None}")
 
     if tool_name in MCP_TOOL_INFO:
         server, description = MCP_TOOL_INFO[tool_name]
@@ -343,6 +356,11 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     # Debug: Check what's registered on the LLM
     logger.info(f"Checking LLM for registered function handlers...")
+    logger.info(f"  all_tools: {all_tools}")
+    if all_tools and hasattr(all_tools, 'standard_tools'):
+        logger.info(f"  all_tools.standard_tools count: {len(all_tools.standard_tools)}")
+        for t in all_tools.standard_tools[:5]:
+            logger.info(f"    Tool: {getattr(t, 'name', t)}")
     for attr in ['_functions', '_function_callbacks']:
         if hasattr(llm, attr):
             val = getattr(llm, attr)
@@ -361,6 +379,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
             original_handler = handler_item.handler
 
             async def logging_wrapper(params, orig_handler=original_handler, name=func_name):
+                logger.info(f"🎯 WRAPPER INVOKED: {name} with args: {params.arguments}")
                 log_mcp_tool_call(name, params.arguments)
 
                 # Wrap the result_callback to capture the result
@@ -370,7 +389,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
                 async def capturing_callback(result):
                     nonlocal captured_result
                     captured_result = result
-                    logger.debug(f"🔧 [{name}] Callback result: {str(result)[:300]}")
+                    logger.info(f"🎯 CALLBACK RECEIVED for [{name}]: {str(result)[:500]}")
                     # Process the result for emotional state capture
                     log_mcp_tool_call(name, params.arguments, result)
                     # Call the original callback

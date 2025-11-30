@@ -358,12 +358,12 @@ class EmotiveTTSProcessor(FrameProcessor):
             if isinstance(frame, LLMFullResponseStartFrame):
                 self._in_llm_response = True
                 self._emotion_applied_for_utterance = False
-                logger.info("🎭 LLM response started - will apply emotion to first text frame")
+                logger.debug("🎭 LLM response started - will apply emotion to first text frame")
 
             elif isinstance(frame, LLMFullResponseEndFrame):
                 self._in_llm_response = False
                 self._emotion_applied_for_utterance = False
-                logger.info("🎭 LLM response ended")
+                logger.debug("🎭 LLM response ended")
 
             elif isinstance(frame, (TextFrame, TTSTextFrame)):
                 # Get current emotional state

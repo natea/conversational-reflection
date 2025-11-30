@@ -1,4 +1,4 @@
-# Sable MCP Server
+                        # Sable MCP Server
 
 A Model Context Protocol (MCP) server that wraps the Sable (Her) CLI for emotional analysis using Antonio Damasio's consciousness model.
 

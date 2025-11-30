@@ -6,19 +6,21 @@ An AI companion that analyzes iMessage conversations, develops emotional respons
 
 This tool creates a reflective AI experience that can:
 
+- **Listen** to your voice with high-accuracy speech recognition via Deepgram
 - **Analyze** your text conversations for emotional content
 - **Develop** genuine emotional responses through a neuroscience-based consciousness model
 - **Reflect** on conversations in a private journal
-- **Express** both your conversation partner's voice and its own insights through emotionally-authentic speech
+- **Express** insights through emotionally-authentic speech with 60+ emotion variations
 
 ## Component Stack
 
 | Component | Purpose |
 |-----------|---------|
-| **imessage-kit** | TypeScript SDK for reading iMessage transcripts from macOS |
+| **Deepgram** | Real-time speech-to-text with Nova-2 model for accurate transcription |
+| **Cartesia Sonic** | Emotive text-to-speech with 60+ emotion tags and SSML control |
 | **Sable (Her)** | Damasio consciousness model with emotions, somatic markers, and autobiographical memory |
+| **imessage-kit** | TypeScript SDK for reading iMessage transcripts from macOS |
 | **private-journal-mcp** | MCP server for semantic journal entries with embeddings |
-| **Maya1** | 3B parameter voice model with 20+ emotion tags and natural language voice design |
 
 ## Architecture
 

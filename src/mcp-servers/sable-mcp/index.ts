@@ -202,9 +202,56 @@ function analyzeEmotion(text: string): EmotionResult[] {
   return results;
 }
 
+// Valid emotion types
+const VALID_EMOTIONS: EmotionType[] = ["fear", "anger", "joy", "sadness", "disgust", "surprise"];
+
+// Map similar emotions to valid ones
+function normalizeEmotion(emotion: string): EmotionType {
+  const normalized = emotion.toLowerCase().trim();
+
+  // Direct match
+  if (VALID_EMOTIONS.includes(normalized as EmotionType)) {
+    return normalized as EmotionType;
+  }
+
+  // Map similar emotions to valid ones
+  const emotionMap: Record<string, EmotionType> = {
+    // Joy variants
+    "happy": "joy", "happiness": "joy", "excited": "joy", "elated": "joy",
+    "content": "joy", "pleased": "joy", "delighted": "joy", "cheerful": "joy",
+    // Sadness variants
+    "sad": "sadness", "unhappy": "sadness", "depressed": "sadness", "melancholy": "sadness",
+    "grief": "sadness", "sorrow": "sadness", "regret": "sadness", "disappointed": "sadness",
+    "lonely": "sadness", "heartbroken": "sadness",
+    // Anger variants
+    "angry": "anger", "mad": "anger", "furious": "anger", "irritated": "anger",
+    "frustrated": "anger", "annoyed": "anger", "outraged": "anger",
+    // Fear variants
+    "afraid": "fear", "scared": "fear", "anxious": "fear", "worried": "fear",
+    "nervous": "fear", "terrified": "fear", "panic": "fear", "dread": "fear",
+    // Disgust variants
+    "disgusted": "disgust", "revolted": "disgust", "repulsed": "disgust",
+    // Surprise variants
+    "surprised": "surprise", "shocked": "surprise", "amazed": "surprise",
+    "astonished": "surprise", "startled": "surprise",
+  };
+
+  if (emotionMap[normalized]) {
+    return emotionMap[normalized];
+  }
+
+  // Default to joy for positive-sounding, sadness for negative-sounding
+  console.error(`Unknown emotion "${emotion}", defaulting to joy`);
+  return "joy";
+}
+
 // Update body state based on emotion
 function updateBodyState(emotion: EmotionType, intensity: number): void {
   const effects = emotionBodyEffects[emotion];
+  if (!effects) {
+    console.error(`No body effects for emotion "${emotion}", using neutral`);
+    return;
+  }
   const decay = 0.7; // How much existing state persists
   const impact = intensity * (1 - decay);
 
@@ -473,13 +520,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "feel_emotion": {
-        const emotion = args?.emotion as EmotionType;
+        const rawEmotion = args?.emotion as string;
         const intensity = args?.intensity as number;
         const cause = args?.cause as string;
 
-        if (!emotion || intensity === undefined || !cause) {
+        if (!rawEmotion || intensity === undefined || !cause) {
           throw new Error("Emotion, intensity, and cause parameters are required");
         }
+
+        // Normalize the emotion to a valid type (handles "regret" -> "sadness", etc.)
+        const emotion = normalizeEmotion(rawEmotion);
 
         feelEmotion(emotion, intensity, cause);
 
@@ -488,7 +538,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             type: "text",
             text: JSON.stringify({
               success: true,
-              message: `Registered ${emotion} at ${(intensity * 100).toFixed(0)}% intensity`,
+              message: `Registered ${emotion} at ${(intensity * 100).toFixed(0)}% intensity${rawEmotion !== emotion ? ` (normalized from "${rawEmotion}")` : ""}`,
               current_state: {
                 primary_emotions: emotionalState.emotions,
                 background_feelings: emotionalState.background_feelings,
