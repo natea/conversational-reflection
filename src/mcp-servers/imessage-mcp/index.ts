@@ -9,11 +9,15 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 
+// Contact name lookup
+import { lookupContact } from './contacts.js';
+
 // Types for iMessage data structures
 interface IMessage {
   id: string;
   text: string;
   sender: string;
+  senderName: string | null;  // Contact name from address book (may be null)
   timestamp: Date;
   isFromMe: boolean;
   chatId: string;
@@ -22,7 +26,7 @@ interface IMessage {
 
 interface IChat {
   id: string;
-  displayName: string;
+  displayName: string | null;  // Contact/group name (may be null)
   participants: string[];
   isGroup: boolean;
   unreadCount: number;
@@ -108,15 +112,21 @@ async function getMessages(args: {
     const messages: IMessage[] = result.messages || result;
 
     return {
-      messages: messages.map((msg: any) => ({
-        id: msg.id || msg.guid,
-        text: msg.text || msg.body || '',
-        sender: msg.sender || msg.handle,
-        timestamp: new Date(msg.date || msg.timestamp),
-        isFromMe: msg.isFromMe || msg.is_from_me || false,
-        chatId: msg.chatId || msg.chat_id,
-        attachments: msg.attachments || [],
-      })),
+      messages: messages.map((msg: any) => {
+        const sender = msg.sender || msg.handle;
+        // Try to get contact name: first from SDK, then from our Contacts lookup
+        const senderName = msg.senderName || lookupContact(sender);
+        return {
+          id: msg.id || msg.guid,
+          text: msg.text || msg.body || '',
+          sender,
+          senderName,
+          timestamp: new Date(msg.date || msg.timestamp),
+          isFromMe: msg.isFromMe || msg.is_from_me || false,
+          chatId: msg.chatId || msg.chat_id,
+          attachments: msg.attachments || [],
+        };
+      }),
       total: messages.length,
     };
   } catch (error: any) {
@@ -153,14 +163,25 @@ async function listChats(args: {
 
     // Map to standardized format
     // SDK returns ChatSummary: { chatId, displayName, lastMessageAt, isGroup, unreadCount }
-    const formattedChats: IChat[] = chats.map((chat: any) => ({
-      id: chat.chatId || chat.id || chat.guid,
-      displayName: chat.displayName || 'Unnamed Chat',
-      participants: [], // SDK doesn't return participants in ChatSummary
-      isGroup: chat.isGroup || false,
-      unreadCount: chat.unreadCount || 0,
-      lastMessage: undefined, // SDK doesn't include lastMessage in ChatSummary
-    }));
+    const formattedChats: IChat[] = chats.map((chat: any) => {
+      const chatId = chat.chatId || chat.id || chat.guid;
+      // For non-group chats, try to resolve contact name from the chatId
+      // chatId format for DMs is often like "iMessage;-;+1234567890" or just the identifier
+      let displayName = chat.displayName;
+      if (!displayName && !chat.isGroup) {
+        // Extract identifier from chatId and try contact lookup
+        const identifier = chatId.includes(';') ? chatId.split(';').pop() : chatId;
+        displayName = lookupContact(identifier || '');
+      }
+      return {
+        id: chatId,
+        displayName: displayName || 'Unnamed Chat',
+        participants: [], // SDK doesn't return participants in ChatSummary
+        isGroup: chat.isGroup || false,
+        unreadCount: chat.unreadCount || 0,
+        lastMessage: undefined, // SDK doesn't include lastMessage in ChatSummary
+      };
+    });
 
     return {
       chats: formattedChats,

@@ -1,0 +1,12 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/pipecat/.venv/bin/python",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/pipecat/.venv/lib/python3.10/site-packages"
+    ],
+    "python.analysis.autoSearchPaths": true,
+    "python.terminal.activateEnvironment": true,
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true
+    }
+}
