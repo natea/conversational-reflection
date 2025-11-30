@@ -723,30 +723,90 @@ async def handle_tool_call(params: FunctionCallParams):
     logger.info(f"🔧 Tool call [{server}]: {tool_name}({tool_args})")
     
     # ==========================================================================
-    # Conflict Analysis Tools (built-in)
+    # iMessage Tools - Real data from macOS Messages
     # ==========================================================================
     
-    if tool_name == "analyze_conflict_pattern":
+    if tool_name == "get_messages":
+        try:
+            from imessage_client import get_messages
+            messages = await get_messages(
+                contact=tool_args.get("contact"),
+                since=tool_args.get("since"),
+                limit=tool_args.get("limit", 50)
+            )
+            result = {"status": "success", "messages": messages, "count": len(messages)}
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"get_messages failed: {e}")
+            result = {"status": "error", "error": str(e), "note": "Ensure macOS with Full Disk Access"}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "get_contacts":
+        try:
+            from imessage_client import get_contacts
+            contacts = await get_contacts(limit=tool_args.get("limit", 100))
+            result = {"status": "success", "contacts": contacts, "count": len(contacts)}
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"get_contacts failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "get_conversations":
+        try:
+            from imessage_client import list_conversations
+            conversations = await list_conversations(limit=tool_args.get("limit", 50))
+            result = {"status": "success", "conversations": conversations, "count": len(conversations)}
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"get_conversations failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    # ==========================================================================
+    # Conflict Analysis Tools - Uses real iMessage data
+    # ==========================================================================
+    
+    elif tool_name == "analyze_conflict_pattern":
         try:
             from conflict_analysis import analyze_conflict_pattern, to_dict
+            from imessage_client import get_messages
             
-            # For now, use mock messages - in production, fetch from MCP
-            # This would call: messages = await call_mcp_tool("get_messages", {"contact": tool_args.get("contact")})
-            mock_messages = [
-                {"text": "After everything I've done for you, this is how you repay me?", "is_from_me": False, "timestamp": "2025-11-01T10:00:00"},
-                {"text": "Mom, I need to make my own decisions about the wedding.", "is_from_me": True, "timestamp": "2025-11-01T10:05:00"},
-                {"text": "You're being so selfish. I won't be coming to the wedding.", "is_from_me": False, "timestamp": "2025-11-01T10:10:00"},
-                {"text": "That's your choice to make.", "is_from_me": True, "timestamp": "2025-11-01T10:15:00"},
-                {"text": "I can't believe you would do this to your own mother.", "is_from_me": False, "timestamp": "2025-11-01T10:20:00"},
-            ]
+            contact = tool_args.get("contact", "Contact")
+            
+            # Try to fetch real messages, fall back to demo data if unavailable
+            try:
+                real_messages = await get_messages(contact=contact, limit=100)
+                if real_messages:
+                    messages = real_messages
+                    logger.info(f"Analyzing {len(messages)} real messages for {contact}")
+                else:
+                    raise ValueError("No messages found")
+            except Exception as fetch_error:
+                logger.warning(f"Could not fetch real messages: {fetch_error}, using demo data")
+                # Demo messages for testing without iMessage access
+                messages = [
+                    {"text": "After everything I've done for you, this is how you repay me?", "is_from_me": False, "timestamp": "2025-11-01T10:00:00"},
+                    {"text": "Mom, I need to make my own decisions about the wedding.", "is_from_me": True, "timestamp": "2025-11-01T10:05:00"},
+                    {"text": "You're being so selfish. I won't be coming to the wedding.", "is_from_me": False, "timestamp": "2025-11-01T10:10:00"},
+                    {"text": "That's your choice to make.", "is_from_me": True, "timestamp": "2025-11-01T10:15:00"},
+                    {"text": "I can't believe you would do this to your own mother.", "is_from_me": False, "timestamp": "2025-11-01T10:20:00"},
+                ]
             
             analysis = analyze_conflict_pattern(
-                messages=mock_messages,
-                contact=tool_args.get("contact", "Contact"),
+                messages=messages,
+                contact=contact,
                 timeframe=tool_args.get("timeframe", "recent"),
                 topic=tool_args.get("topic")
             )
             result = to_dict(analysis)
+            result["data_source"] = "real" if 'real_messages' in dir() and real_messages else "demo"
             await params.result_callback(result)
             return
         except Exception as e:
@@ -755,24 +815,37 @@ async def handle_tool_call(params: FunctionCallParams):
             await params.result_callback(result)
             return
     
-    if tool_name == "get_relationship_summary":
+    elif tool_name == "get_relationship_summary":
         try:
             from conflict_analysis import get_relationship_summary, to_dict
+            from imessage_client import get_messages
             
-            # Mock messages for demo
-            mock_messages = [
-                {"text": "I love you but you need to respect my boundaries", "is_from_me": True},
-                {"text": "You're overreacting as usual", "is_from_me": False},
-                {"text": "Happy birthday mom! ❤️", "is_from_me": True},
-                {"text": "Thank you sweetheart", "is_from_me": False},
-                {"text": "Why didn't you call me yesterday?", "is_from_me": False},
-            ]
+            contact = tool_args.get("contact", "Contact")
+            
+            # Try to fetch real messages, fall back to demo data if unavailable
+            try:
+                real_messages = await get_messages(contact=contact, limit=200)
+                if real_messages:
+                    messages = real_messages
+                    logger.info(f"Summarizing {len(messages)} real messages for {contact}")
+                else:
+                    raise ValueError("No messages found")
+            except Exception as fetch_error:
+                logger.warning(f"Could not fetch real messages: {fetch_error}, using demo data")
+                messages = [
+                    {"text": "I love you but you need to respect my boundaries", "is_from_me": True},
+                    {"text": "You're overreacting as usual", "is_from_me": False},
+                    {"text": "Happy birthday mom! ❤️", "is_from_me": True},
+                    {"text": "Thank you sweetheart", "is_from_me": False},
+                    {"text": "Why didn't you call me yesterday?", "is_from_me": False},
+                ]
             
             summary = get_relationship_summary(
-                messages=mock_messages,
-                contact=tool_args.get("contact", "Contact")
+                messages=messages,
+                contact=contact
             )
             result = to_dict(summary)
+            result["data_source"] = "real" if 'real_messages' in dir() and real_messages else "demo"
             await params.result_callback(result)
             return
         except Exception as e:
