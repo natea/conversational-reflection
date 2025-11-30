@@ -352,6 +352,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
                     logger.info(f"    Keys: {list(val.keys())[:10]}...")
 
     # Wrap registered function handlers to add logging and capture emotional state
+    # Pipecat MCP uses callback pattern - result is passed via params.result_callback, not returned
     if hasattr(llm, '_functions') and llm._functions:
         original_handlers = dict(llm._functions)
         for func_name, handler_item in original_handlers.items():
@@ -361,18 +362,27 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
             async def logging_wrapper(params, orig_handler=original_handler, name=func_name):
                 log_mcp_tool_call(name, params.arguments)
-                result = await orig_handler(params)
-                # Debug: log the raw result type and content
-                logger.debug(f"🔧 [{name}] Result type: {type(result)}")
-                if result is not None:
-                    try:
-                        result_str = str(result)[:500]
-                        logger.debug(f"🔧 [{name}] Result preview: {result_str}")
-                    except Exception:
-                        pass
-                # Pass result to log function for emotional state capture
-                log_mcp_tool_call(name, params.arguments, result)
-                return result
+
+                # Wrap the result_callback to capture the result
+                original_callback = params.result_callback
+                captured_result = None
+
+                async def capturing_callback(result):
+                    nonlocal captured_result
+                    captured_result = result
+                    logger.debug(f"🔧 [{name}] Callback result: {str(result)[:300]}")
+                    # Process the result for emotional state capture
+                    log_mcp_tool_call(name, params.arguments, result)
+                    # Call the original callback
+                    await original_callback(result)
+
+                # Replace the callback temporarily
+                params.result_callback = capturing_callback
+
+                # Call the original handler
+                await orig_handler(params)
+
+                return None  # MCP handlers don't return values
 
             handler_item.handler = logging_wrapper
         logger.info(f"Added logging wrappers for {len([k for k in original_handlers.keys() if k is not None])} function handlers")
