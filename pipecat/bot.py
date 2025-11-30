@@ -837,25 +837,70 @@ async def handle_tool_call(params: FunctionCallParams):
         return
     
     elif tool_name == "start_recording":
-        roleplay_session.recording_active = True
-        roleplay_session.session_id = f"session_{tool_args.get('session_name', 'unnamed')}_{roleplay_session.exchange_count}"
-        result = {
-            "status": "success",
-            "session_id": roleplay_session.session_id,
-            "message": "Recording started"
-        }
-        await params.result_callback(result)
-        return
+        try:
+            from video_generator import start_recording
+            result = start_recording(
+                session_name=tool_args.get("session_name", "unnamed"),
+                contact=roleplay_session.contact or "Contact",
+                scenario=roleplay_session.scenario or "General"
+            )
+            roleplay_session.recording_active = True
+            roleplay_session.session_id = result.get("session_id", "unknown")
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"Start recording failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
     
     elif tool_name == "stop_recording":
-        roleplay_session.recording_active = False
-        result = {
-            "status": "success",
-            "session_id": roleplay_session.session_id,
-            "message": "Recording stopped"
-        }
-        await params.result_callback(result)
-        return
+        try:
+            from video_generator import stop_recording
+            session_id = roleplay_session.session_id or "unknown"
+            result = stop_recording(session_id)
+            roleplay_session.recording_active = False
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"Stop recording failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "extract_highlights":
+        try:
+            from video_generator import extract_highlights
+            result = extract_highlights(
+                session_id=tool_args.get("session_id", roleplay_session.session_id),
+                highlight_count=tool_args.get("count", 5),
+                focus=tool_args.get("focus", "all")
+            )
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"Extract highlights failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "generate_video":
+        try:
+            from video_generator import generate_video
+            result = generate_video(
+                session_id=tool_args.get("session_id", roleplay_session.session_id),
+                format=tool_args.get("format", "tiktok"),
+                style=tool_args.get("style", "emotional"),
+                include_captions=tool_args.get("include_captions", True),
+                title=tool_args.get("title")
+            )
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"Generate video failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
     
     # ==========================================================================
     # MCP Server Dispatch for external tools
