@@ -341,6 +341,33 @@ def create_mcp_tool_schemas() -> list[FunctionSchema]:
             required=["contact"]
         ),
         FunctionSchema(
+            name="set_voice_profile",
+            description="Set specific voice profile parameters for a contact",
+            properties={
+                "contact_name": {"type": "string", "description": "Name of the contact"},
+                "gender": {"type": "string", "enum": ["male", "female", "neutral"], "description": "Voice gender"},
+                "age_range": {"type": "string", "description": "Age range like '30-40', '50-60'"},
+                "timbre": {"type": "string", "enum": ["warm", "clear", "gravelly", "soft", "authoritative"]},
+                "pace": {"type": "string", "enum": ["slow", "conversational", "fast"]},
+                "tone": {"type": "string", "description": "Emotional tone description"},
+                "accent": {"type": "string", "description": "Optional accent"},
+                "typical_emotions": {"type": "array", "items": {"type": "string"}, "description": "Typical emotions"},
+                "speaking_style": {"type": "string", "description": "Speaking style (e.g., 'passive-aggressive')"},
+                "relationship_type": {"type": "string", "enum": ["family", "friend", "romantic", "professional"]}
+            },
+            required=["contact_name"]
+        ),
+        FunctionSchema(
+            name="infer_voice_profile",
+            description="Automatically infer a voice profile from message history analysis",
+            properties={
+                "contact_name": {"type": "string", "description": "Name of the contact"},
+                "messages": {"type": "array", "description": "List of messages to analyze"},
+                "relationship_hint": {"type": "string", "description": "Hint about relationship type"}
+            },
+            required=["contact_name"]
+        ),
+        FunctionSchema(
             name="speak_as_contact",
             description="Generate speech as the contact with their voice profile and emotional expression",
             properties={
@@ -454,6 +481,8 @@ MCP_TOOL_INFO = {
     "create_exit_strategy": ("boundaries", "Generate graceful conversation exit lines"),
     # Voice Profiles
     "create_contact_voice_profile": ("voice", "Generate a voice profile for a contact"),
+    "set_voice_profile": ("voice", "Set voice profile parameters for a contact"),
+    "infer_voice_profile": ("voice", "Infer voice profile from message history"),
     "speak_as_contact": ("voice", "Generate speech as the contact"),
     "speak_as_coach": ("voice", "Generate speech as the supportive coach"),
     # Recording & Video
@@ -898,6 +927,82 @@ async def handle_tool_call(params: FunctionCallParams):
             return
         except Exception as e:
             logger.error(f"Generate video failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    # ==========================================================================
+    # Voice Synthesis Tools
+    # ==========================================================================
+    
+    elif tool_name == "speak_as_contact":
+        try:
+            from voice_synthesis import speak_as_contact
+            result = await speak_as_contact(
+                text=tool_args.get("text", ""),
+                contact_name=tool_args.get("contact_name", roleplay_session.contact or "Contact"),
+                emotion=tool_args.get("emotion"),
+                persona_style=roleplay_session.persona_style
+            )
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"speak_as_contact failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "speak_as_coach":
+        try:
+            from voice_synthesis import speak_as_coach
+            result = await speak_as_coach(
+                text=tool_args.get("text", ""),
+                tone=tool_args.get("tone", "supportive"),
+                emotion=tool_args.get("emotion")
+            )
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"speak_as_coach failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "set_voice_profile":
+        try:
+            from voice_synthesis import set_voice_profile
+            result = set_voice_profile(
+                contact_name=tool_args.get("contact_name", ""),
+                gender=tool_args.get("gender", "neutral"),
+                age_range=tool_args.get("age_range", "40-50"),
+                timbre=tool_args.get("timbre", "clear"),
+                pace=tool_args.get("pace", "conversational"),
+                tone=tool_args.get("tone", "neutral"),
+                accent=tool_args.get("accent"),
+                typical_emotions=tool_args.get("typical_emotions"),
+                speaking_style=tool_args.get("speaking_style", "direct"),
+                relationship_type=tool_args.get("relationship_type", "family")
+            )
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"set_voice_profile failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "infer_voice_profile":
+        try:
+            from voice_synthesis import infer_voice_profile
+            result = infer_voice_profile(
+                contact_name=tool_args.get("contact_name", ""),
+                messages=tool_args.get("messages", []),
+                relationship_hint=tool_args.get("relationship_hint")
+            )
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"infer_voice_profile failed: {e}")
             result = {"status": "error", "error": str(e)}
             await params.result_callback(result)
             return
