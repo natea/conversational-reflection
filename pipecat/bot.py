@@ -22,6 +22,7 @@ Environment variables:
 - LLM_PROVIDER: "openai" (default) or "anthropic"
 - OPENAI_API_KEY: Required if using OpenAI
 - ANTHROPIC_API_KEY: Required if using Anthropic
+- USE_MCP_SERVERS: "true" to enable real MCP server connections (default: "false")
 """
 
 import os
@@ -684,7 +685,69 @@ async def handle_tool_call(params: FunctionCallParams):
     
     logger.info(f"🔧 Tool call [{server}]: {tool_name}({tool_args})")
     
-    # Handle role-play session state
+    # ==========================================================================
+    # Conflict Analysis Tools (built-in)
+    # ==========================================================================
+    
+    if tool_name == "analyze_conflict_pattern":
+        try:
+            from conflict_analysis import analyze_conflict_pattern, to_dict
+            
+            # For now, use mock messages - in production, fetch from MCP
+            # This would call: messages = await call_mcp_tool("get_messages", {"contact": tool_args.get("contact")})
+            mock_messages = [
+                {"text": "After everything I've done for you, this is how you repay me?", "is_from_me": False, "timestamp": "2025-11-01T10:00:00"},
+                {"text": "Mom, I need to make my own decisions about the wedding.", "is_from_me": True, "timestamp": "2025-11-01T10:05:00"},
+                {"text": "You're being so selfish. I won't be coming to the wedding.", "is_from_me": False, "timestamp": "2025-11-01T10:10:00"},
+                {"text": "That's your choice to make.", "is_from_me": True, "timestamp": "2025-11-01T10:15:00"},
+                {"text": "I can't believe you would do this to your own mother.", "is_from_me": False, "timestamp": "2025-11-01T10:20:00"},
+            ]
+            
+            analysis = analyze_conflict_pattern(
+                messages=mock_messages,
+                contact=tool_args.get("contact", "Contact"),
+                timeframe=tool_args.get("timeframe", "recent"),
+                topic=tool_args.get("topic")
+            )
+            result = to_dict(analysis)
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"Conflict analysis failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    if tool_name == "get_relationship_summary":
+        try:
+            from conflict_analysis import get_relationship_summary, to_dict
+            
+            # Mock messages for demo
+            mock_messages = [
+                {"text": "I love you but you need to respect my boundaries", "is_from_me": True},
+                {"text": "You're overreacting as usual", "is_from_me": False},
+                {"text": "Happy birthday mom! ❤️", "is_from_me": True},
+                {"text": "Thank you sweetheart", "is_from_me": False},
+                {"text": "Why didn't you call me yesterday?", "is_from_me": False},
+            ]
+            
+            summary = get_relationship_summary(
+                messages=mock_messages,
+                contact=tool_args.get("contact", "Contact")
+            )
+            result = to_dict(summary)
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"Relationship summary failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    # ==========================================================================
+    # Role-Play Session State Management
+    # ==========================================================================
+    
     if tool_name == "start_roleplay":
         roleplay_session.active = True
         roleplay_session.contact = tool_args.get("contact")
@@ -794,7 +857,28 @@ async def handle_tool_call(params: FunctionCallParams):
         await params.result_callback(result)
         return
     
-    # Default handler for tools that need MCP server dispatch
+    # ==========================================================================
+    # MCP Server Dispatch for external tools
+    # ==========================================================================
+    
+    # Check if MCP servers are enabled
+    use_mcp = os.getenv("USE_MCP_SERVERS", "false").lower() == "true"
+    
+    if use_mcp and server in ("sable", "imessage", "journal", "voice"):
+        try:
+            from mcp_client import call_mcp_tool
+            result = await call_mcp_tool(tool_name, tool_args)
+            await params.result_callback(result)
+            return
+        except ImportError:
+            logger.warning("MCP client not available, using mock response")
+        except Exception as e:
+            logger.error(f"MCP call failed for {tool_name}: {e}")
+            result = {"status": "error", "error": str(e), "tool": tool_name}
+            await params.result_callback(result)
+            return
+    
+    # Default mock handler for tools without MCP server dispatch
     result = {"status": "success", "tool": tool_name, "args": tool_args}
     await params.result_callback(result)
 
