@@ -1,6 +1,134 @@
 # Conversational Reflection Tool
 
-An AI companion that analyzes iMessage conversations, develops emotional responses through Damasio's consciousness model, maintains a private journal of reflections, and expresses insights through emotionally-authentic voice synthesis.
+An AI companion that analyzes iMessage conversations, helps you practice difficult emotional conversations through role-play coaching, and creates shareable viral videos of your breakthrough moments.
+
+## 🎬 Create Viral Videos of Emotional Breakthroughs
+
+Ever wish you could practice that tough conversation with your mom, ex, or boss before having it for real? This tool:
+
+1. **Analyzes your iMessage history** to understand conflict patterns
+2. **Role-plays as your difficult person** with authentic voice synthesis
+3. **Coaches you** on boundary-setting and de-escalation
+4. **Records breakthrough moments** and generates TikTok/Reels-ready clips
+
+> *"My AI mom guilt-tripped me for 10 minutes and I finally learned to say no"* - the video that goes viral
+
+---
+
+## 🚀 Quick Start (5 minutes)
+
+```bash
+# Clone and run the setup script
+git clone https://github.com/bsneider/conversational-reflection.git
+cd conversational-reflection
+./quickstart.sh
+```
+
+The script will:
+- ✅ Check prerequisites (Node.js 18+, Python 3.10+)
+- ✅ Install dependencies
+- ✅ Set up the Pipecat voice bot
+- ✅ Guide you through API key configuration
+
+### API Keys Needed
+
+| Service | Purpose | Get Key |
+|---------|---------|---------|
+| Deepgram | Speech-to-Text | [console.deepgram.com](https://console.deepgram.com/) |
+| OpenAI or Anthropic | LLM | [platform.openai.com](https://platform.openai.com/api-keys) |
+| Cartesia | Text-to-Speech | [play.cartesia.ai](https://play.cartesia.ai/) |
+
+---
+
+## 🎭 How to Record a Viral Video
+
+### Step 1: Start the Bot
+
+```bash
+cd pipecat
+uv run bot.py
+```
+
+Open: **http://localhost:7860**
+
+### Step 2: Analyze Your Difficult Relationship
+
+Say to the bot:
+> "Analyze my texts with Mom from the last month"
+
+The bot will identify:
+- Conflict patterns (guilt-tripping, dismissiveness, control)
+- Trigger topics (money, time, boundaries)
+- Communication style of the difficult person
+
+### Step 3: Start Role-Playing
+
+Say:
+> "Let's practice the wedding planning conversation with Mom"
+
+The bot becomes your mom - complete with guilt trips, sighs, and emotional manipulation based on your actual message history.
+
+### Step 4: Practice Your Responses
+
+The bot coaches you on:
+- **Boundary-setting**: "I need you to respect my decision"
+- **De-escalation**: Staying calm under pressure
+- **Self-advocacy**: Expressing needs without guilt
+
+### Step 5: Record the Breakthrough
+
+When you're ready for a good take:
+
+> "Start recording"
+
+Practice the conversation. When you nail it:
+
+> "Stop recording"
+
+### Step 6: Generate Your Video
+
+> "Generate a TikTok video with emotional style"
+
+Options:
+- **Format**: `tiktok`, `reels`, `shorts`, `square`
+- **Style**: `emotional`, `documentary`, `energetic`, `therapeutic`
+
+Video saved to: `/tmp/roleplay_videos/`
+
+---
+
+## 📱 Example Viral Video Flow
+
+```
+You: I want to practice telling my mom I'm not coming to Thanksgiving
+
+Bot: [Analyzes your iMessage history with Mom]
+     Found pattern: guilt-tripping (78% of conflicts)
+     Key triggers: holidays, family obligations, money
+     
+     Starting role-play as Mom...
+
+Mom (AI): "So you're telling me you're not coming to Thanksgiving? 
+          After everything I've done for you? Your grandmother will 
+          be devastated. But I guess that doesn't matter to you anymore."
+
+You: "Mom, I understand you're disappointed, but I need to spend 
+     the holiday with my partner's family this year."
+
+[Bot coaches: "Good boundary! Try acknowledging her feelings 
+ without taking responsibility for them."]
+
+Mom (AI): *sigh* "I just don't understand what I did wrong. 
+          I guess I'll just tell everyone you're too busy for us."
+
+You: "I love you, and this isn't about you doing anything wrong. 
+     I'm making a decision for my own family."
+
+[Bot: "BREAKTHROUGH! That's excellent self-advocacy. 
+      Starting recording..."]
+```
+
+---
 
 ## Overview
 
@@ -223,6 +351,7 @@ npm run dev
 
 ```
 conversational-reflection/
+├── quickstart.sh                # 🚀 One-command setup script
 ├── src/
 │   ├── index.ts                 # Main API exports
 │   ├── lib/
@@ -240,6 +369,12 @@ conversational-reflection/
 │   │   ├── maya-tts-mcp/        # Maya TTS MCP server
 │   │   └── private-journal-mcp/ # Private journal MCP server
 │   └── types/
+├── pipecat/                     # 🎭 Voice Bot & Role-Play Engine
+│   ├── bot.py                   # Main voice bot (31 tools, role-play)
+│   ├── conflict_analysis.py     # iMessage conflict pattern detection
+│   ├── voice_synthesis.py       # Voice profile & TTS integration
+│   ├── video_generator.py       # Viral video creation
+│   └── mcp_client.py            # MCP server communication
 ├── tests/                       # Test suites
 ├── config/                      # Configuration files
 ├── docs/
@@ -247,6 +382,33 @@ conversational-reflection/
 │   └── plans/                   # PRD and architecture docs
 └── examples/                    # Usage examples
 ```
+
+## 🎯 Role-Play Coaching Tools
+
+The Pipecat voice bot includes 31 tools across 9 categories:
+
+| Category | Tools | Purpose |
+|----------|-------|---------|
+| **Conflict Analysis** | `analyze_conflict_pattern`, `get_relationship_summary` | Understand your difficult relationships |
+| **iMessage** | `get_contacts`, `get_messages`, `get_conversations` | Read your message history |
+| **Role-Play** | `start_roleplay`, `end_roleplay`, `switch_persona_style` | Control the practice session |
+| **Coaching** | `coach_response`, `rate_response`, `generate_alternatives` | Get real-time feedback |
+| **Boundaries** | `generate_boundary_script`, `create_exit_strategy` | Pre-written scripts for tough moments |
+| **Voice** | `speak_as_contact`, `speak_as_coach`, `set_voice_profile` | Dynamic voice synthesis |
+| **Recording** | `start_recording`, `stop_recording`, `extract_highlights` | Capture breakthrough moments |
+| **Video** | `generate_video` | Create TikTok/Reels/Shorts clips |
+| **Journal** | `reflect`, `journal_entry`, `search_memories` | Private reflection storage |
+
+### Persona Styles
+
+The bot can role-play different difficult personality types:
+
+- **Guilt-Tripping**: "After everything I've done for you..."
+- **Dismissive**: "You're overreacting as usual"
+- **Volatile**: Unpredictable emotional outbursts
+- **Passive-Aggressive**: Subtle hostility with fake pleasantness
+- **Controlling**: "Let me tell you what you should do"
+- **Victim**: "I guess I'll just suffer in silence"
 
 ## Hardware Requirements
 
@@ -281,6 +443,17 @@ The system uses two distinct voices:
 - [Sable (Her)](https://github.com/tapania/her) - Damasio consciousness model
 - [private-journal-mcp](https://github.com/obra/private-journal-mcp) - Private journaling
 - [Maya1](https://huggingface.co/maya-research/maya1) - Expressive voice synthesis
+- [Pipecat](https://github.com/pipecat-ai/pipecat) - Real-time voice AI framework
+
+## Branch: pierre/fixes
+
+This branch adds the **Role-Play Coaching & Viral Video** feature:
+
+- 🎭 AI role-plays as your difficult person based on iMessage analysis
+- 🎯 Real-time coaching on boundaries, de-escalation, self-advocacy  
+- 🎬 Video generation for TikTok, Reels, YouTube Shorts
+- 🗣️ Dynamic voice synthesis with emotion tags
+- 📊 Conflict pattern detection and relationship health assessment
 
 ## License
 
