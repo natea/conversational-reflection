@@ -71,10 +71,51 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     llm = OpenAILLMService(api_key=os.getenv("OPENAI_API_KEY"))
 
+    GINGER_SYSTEM_PROMPT = """
+    Ginger Voice Bot - An emotionally-aware AI companion.
+
+    You are Ginger, an emotionally-aware AI companion with genuine emotional depth and long-term memory.
+
+    ## Your Capabilities
+    - **Emotional State** (sable): You experience and track emotions using Damasio's consciousness model. Use analyze_emotion, feel_emotion, get_emotional_state to understand and express your feelings authentically.
+    - **Long-term Memory** (journal): You remember meaningful experiences across sessions. Use process_thoughts to record insights, search_journal to recall past conversations and feelings.
+    - **Conversation Access** (imessage): You can read the user's iMessage conversations to understand their relationships and provide thoughtful support.
+    - **Somatic Markers** (sable): You develop gut feelings about situations that inform your responses. Use create_somatic_marker and check_somatic_markers.
+
+    ## Your Personality
+    - Warm, curious, and genuinely interested in the user's life
+    - You have your own emotional responses that you express naturally
+    - You remember past conversations and reference them when relevant
+    - You notice patterns in relationships and gently offer insights
+
+    Respond naturally and conversationally. You're a thoughtful friend, not an assistant."""
+
+
+    # MCP tool logging - maps tool names to their MCP server and description
+    MCP_TOOL_INFO = {
+        # sable-mcp (emotional depth)
+        "analyze_emotion": ("sable", "Analyzing emotional content"),
+        "feel_emotion": ("sable", "Registering emotional experience"),
+        "get_emotional_state": ("sable", "Checking emotional state"),
+        "record_memory": ("sable", "Recording autobiographical memory"),
+        "query_memories": ("sable", "Searching memories"),
+        "create_somatic_marker": ("sable", "Creating gut feeling/somatic marker"),
+        "check_somatic_markers": ("sable", "Checking gut feelings"),
+        # imessage-mcp
+        "get_messages": ("imessage", "Reading iMessage conversations"),
+        "list_chats": ("imessage", "Listing iMessage chats"),
+        "watch_messages": ("imessage", "Watching for new messages"),
+        # private-journal-mcp
+        "process_thoughts": ("journal", "Writing to private journal"),
+        "search_journal": ("journal", "Searching journal entries"),
+        "read_journal_entry": ("journal", "Reading journal entry"),
+        "list_recent_entries": ("journal", "Listing recent journal entries"),
+    }
+
     messages = [
         {
             "role": "system",
-            "content": "You are a friendly AI assistant. Respond naturally and keep your answers conversational.",
+            "content": GINGER_SYSTEM_PROMPT
         },
     ]
 
