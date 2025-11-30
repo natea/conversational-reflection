@@ -206,6 +206,9 @@ def log_mcp_tool_call(tool_name: str, args: dict, result: Optional[Any] = None):
 
     Also captures emotional state updates from get_emotional_state calls.
     """
+    # Always log that a tool was called
+    logger.debug(f"🔧 Tool called: {tool_name}, has_result: {result is not None}")
+
     if tool_name in MCP_TOOL_INFO:
         server, description = MCP_TOOL_INFO[tool_name]
         # Create a brief summary of the args
@@ -237,22 +240,29 @@ def log_mcp_tool_call(tool_name: str, args: dict, result: Optional[Any] = None):
                 logger.warning(f"Failed to parse emotional state: {e}")
 
         # Also update on feel_emotion calls
-        if tool_name == "feel_emotion" and result:
-            try:
-                result_data = _extract_mcp_result(result)
-                if result_data and "current_state" in result_data:
-                    # Reconstruct full state from feel_emotion response
-                    current = result_data["current_state"]
-                    state = {
-                        "emotions": current.get("primary_emotions", []),
-                        "background_feelings": current.get("background_feelings", []),
-                        "body_state": _current_emotional_state.get("body_state", {}),
-                        "last_updated": datetime.now().isoformat(),
-                    }
-                    update_emotional_state(state)
-                    logger.info(f"🎭 Updated emotions from feel_emotion: {state['emotions']}")
-            except Exception as e:
-                logger.warning(f"Failed to parse feel_emotion result: {e}")
+        if tool_name == "feel_emotion":
+            logger.info(f"🎭 feel_emotion called with args: {args}")
+            if result:
+                try:
+                    result_data = _extract_mcp_result(result)
+                    logger.info(f"🎭 feel_emotion result_data: {result_data}")
+                    if result_data and "current_state" in result_data:
+                        # Reconstruct full state from feel_emotion response
+                        current = result_data["current_state"]
+                        state = {
+                            "emotions": current.get("primary_emotions", []),
+                            "background_feelings": current.get("background_feelings", []),
+                            "body_state": _current_emotional_state.get("body_state", {}),
+                            "last_updated": datetime.now().isoformat(),
+                        }
+                        update_emotional_state(state)
+                        logger.info(f"🎭 Updated emotions from feel_emotion: {state['emotions']}")
+                    else:
+                        logger.warning(f"🎭 feel_emotion result missing 'current_state': {result_data}")
+                except Exception as e:
+                    logger.warning(f"Failed to parse feel_emotion result: {e}")
+            else:
+                logger.warning(f"🎭 feel_emotion called but result is None")
     else:
         logger.info(f"🔧 Tool call: {tool_name}")
 
@@ -445,6 +455,9 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 5. Use analyze_emotion on any notable messages
 6. Check your journal (search_journal) for any prior context about these contacts or the user
 7. Ignore any messages from numbers that are only 5 digits long. These are likely system messages.
+
+IMPORTANT: Before speaking your greeting, call feel_emotion to set your emotional state!
+For example: feel_emotion(joy, 0.6, "happy to connect with the user")
 
 Then greet the user warmly. If you noticed something interesting or meaningful in their messages,
 you might gently bring it up - but be sensitive and let them lead the conversation.
