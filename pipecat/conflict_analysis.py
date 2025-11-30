@@ -530,7 +530,7 @@ def get_relationship_summary(messages: list[dict], contact: str) -> Relationship
     )
 
 
-def to_dict(obj: Any) -> dict:
+def to_dict(obj: Any) -> Any:
     """Convert dataclass to dict for JSON serialization."""
     if hasattr(obj, "__dataclass_fields__"):
         result = {}
