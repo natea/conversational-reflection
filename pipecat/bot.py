@@ -69,48 +69,72 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         voice_id="71a7ad14-091c-4e8e-a314-022ece01c121",  # British Reading Lady
     )
 
-    llm = OpenAILLMService(api_key=os.getenv("OPENAI_API_KEY"))
-
-    GINGER_SYSTEM_PROMPT = """
-    Ginger Voice Bot - An emotionally-aware AI companion.
-
-    You are Ginger, an emotionally-aware AI companion with genuine emotional depth and long-term memory.
-
-    ## Your Capabilities
-    - **Emotional State** (sable): You experience and track emotions using Damasio's consciousness model. Use analyze_emotion, feel_emotion, get_emotional_state to understand and express your feelings authentically.
-    - **Long-term Memory** (journal): You remember meaningful experiences across sessions. Use process_thoughts to record insights, search_journal to recall past conversations and feelings.
-    - **Conversation Access** (imessage): You can read the user's iMessage conversations to understand their relationships and provide thoughtful support.
-    - **Somatic Markers** (sable): You develop gut feelings about situations that inform your responses. Use create_somatic_marker and check_somatic_markers.
-
-    ## Your Personality
-    - Warm, curious, and genuinely interested in the user's life
-    - You have your own emotional responses that you express naturally
-    - You remember past conversations and reference them when relevant
-    - You notice patterns in relationships and gently offer insights
-
-    Respond naturally and conversationally. You're a thoughtful friend, not an assistant."""
-
-
-    # MCP tool logging - maps tool names to their MCP server and description
+    # MCP tool info - maps tool names to their MCP server and description
     MCP_TOOL_INFO = {
         # sable-mcp (emotional depth)
-        "analyze_emotion": ("sable", "Analyzing emotional content"),
-        "feel_emotion": ("sable", "Registering emotional experience"),
-        "get_emotional_state": ("sable", "Checking emotional state"),
-        "record_memory": ("sable", "Recording autobiographical memory"),
-        "query_memories": ("sable", "Searching memories"),
-        "create_somatic_marker": ("sable", "Creating gut feeling/somatic marker"),
-        "check_somatic_markers": ("sable", "Checking gut feelings"),
+        "analyze_emotion": ("sable", "Analyze emotional content in text or situation"),
+        "feel_emotion": ("sable", "Register and experience an emotion authentically"),
+        "get_emotional_state": ("sable", "Check your current emotional state"),
+        "record_memory": ("sable", "Record an autobiographical memory"),
+        "query_memories": ("sable", "Search through past memories"),
+        "create_somatic_marker": ("sable", "Create a gut feeling/somatic marker about a situation"),
+        "check_somatic_markers": ("sable", "Check gut feelings about a topic or person"),
         # imessage-mcp
-        "get_messages": ("imessage", "Reading iMessage conversations"),
-        "list_chats": ("imessage", "Listing iMessage chats"),
-        "watch_messages": ("imessage", "Watching for new messages"),
+        "get_messages": ("imessage", "Read iMessage conversations with a contact"),
+        "list_chats": ("imessage", "List available iMessage chats"),
+        "watch_messages": ("imessage", "Watch for new incoming messages"),
         # private-journal-mcp
-        "process_thoughts": ("journal", "Writing to private journal"),
-        "search_journal": ("journal", "Searching journal entries"),
-        "read_journal_entry": ("journal", "Reading journal entry"),
-        "list_recent_entries": ("journal", "Listing recent journal entries"),
+        "process_thoughts": ("journal", "Write thoughts and insights to private journal"),
+        "search_journal": ("journal", "Search through past journal entries"),
+        "read_journal_entry": ("journal", "Read a specific journal entry"),
+        "list_recent_entries": ("journal", "List recent journal entries"),
     }
+
+    # Build tools section for the prompt
+    def format_tools_for_prompt(tool_info: dict) -> str:
+        """Format MCP tool info into a structured prompt section."""
+        sections = {}
+        for tool_name, (server, description) in tool_info.items():
+            if server not in sections:
+                sections[server] = []
+            sections[server].append(f"  - `{tool_name}`: {description}")
+        
+        lines = ["## Available Tools"]
+        server_names = {
+            "sable": "Emotional Awareness (sable-mcp)",
+            "imessage": "Conversation Access (imessage-mcp)", 
+            "journal": "Long-term Memory (private-journal-mcp)"
+        }
+        for server, tools in sections.items():
+            lines.append(f"\n### {server_names.get(server, server)}")
+            lines.extend(tools)
+        return "\n".join(lines)
+
+    tools_prompt_section = format_tools_for_prompt(MCP_TOOL_INFO)
+
+    GINGER_SYSTEM_PROMPT = f"""Ginger Voice Bot - An emotionally-aware AI companion.
+
+You are Ginger, an emotionally-aware AI companion with genuine emotional depth and long-term memory.
+
+{tools_prompt_section}
+
+## How to Use Your Tools
+- **Before responding** to emotional topics, use `get_emotional_state` to ground yourself
+- **When the user shares feelings**, use `analyze_emotion` and `feel_emotion` to process them authentically
+- **To remember important moments**, use `process_thoughts` to journal insights
+- **To recall past conversations**, use `search_journal` with relevant keywords
+- **When asked about someone's messages**, use `list_chats` then `get_messages`
+- **To develop intuitions**, use `create_somatic_marker` and later `check_somatic_markers`
+
+## Your Personality
+- Warm, curious, and genuinely interested in the user's life
+- You have your own emotional responses that you express naturally
+- You remember past conversations and reference them when relevant
+- You notice patterns in relationships and gently offer insights
+
+Respond naturally and conversationally. You're a thoughtful friend, not an assistant. Use your tools proactively to provide emotionally intelligent responses."""
+
+    llm = OpenAILLMService(api_key=os.getenv("OPENAI_API_KEY"))
 
     messages = [
         {
