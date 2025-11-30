@@ -21,8 +21,11 @@ from loguru import logger
 from pipecat.frames.frames import (
     Frame,
     TextFrame,
+    LLMFullResponseStartFrame,
     LLMFullResponseEndFrame,
     TTSTextFrame,
+    TTSStartedFrame,
+    TTSStoppedFrame,
 )
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 
@@ -318,6 +321,9 @@ class EmotiveTTSProcessor(FrameProcessor):
         self._log_emotions = log_emotions
         self._current_state: Optional[EmotiveVoiceState] = None
         self._last_emotion: Optional[str] = None
+        # Track whether we've applied emotion tags for the current utterance
+        self._emotion_applied_for_utterance = False
+        self._in_llm_response = False
 
     async def _get_current_state(self) -> EmotiveVoiceState:
         """Get current emotional state from sable-mcp"""
@@ -345,9 +351,20 @@ class EmotiveTTSProcessor(FrameProcessor):
         """Process frames and apply emotional state to TTS text"""
         await super().process_frame(frame, direction)
 
-        # Only process text frames going downstream (to TTS)
+        # Only process downstream frames (to TTS)
         if direction == FrameDirection.DOWNSTREAM:
-            if isinstance(frame, (TextFrame, TTSTextFrame)):
+            # Track LLM response boundaries to know when a new utterance starts
+            if isinstance(frame, LLMFullResponseStartFrame):
+                self._in_llm_response = True
+                self._emotion_applied_for_utterance = False
+                logger.debug("🎭 LLM response started - will apply emotion to first text frame")
+
+            elif isinstance(frame, LLMFullResponseEndFrame):
+                self._in_llm_response = False
+                self._emotion_applied_for_utterance = False
+                logger.debug("🎭 LLM response ended")
+
+            elif isinstance(frame, (TextFrame, TTSTextFrame)):
                 # Get current emotional state
                 state = await self._get_current_state()
 
@@ -361,8 +378,8 @@ class EmotiveTTSProcessor(FrameProcessor):
                     )
                     self._last_emotion = current_emotion
 
-                # Apply SSML tags to text
-                if self._use_ssml:
+                # Only apply SSML tags ONCE at the start of the utterance
+                if self._use_ssml and not self._emotion_applied_for_utterance:
                     original_text = frame.text if hasattr(frame, 'text') else str(frame)
                     ssml_prefix = generate_ssml_prefix(state, self._use_ssml)
 
@@ -375,10 +392,11 @@ class EmotiveTTSProcessor(FrameProcessor):
                         else:
                             frame = TextFrame(text=modified_text)
 
-                        logger.debug(f"Applied emotion tags: {ssml_prefix}")
+                        logger.info(f"🎭 Applied emotion tags: {ssml_prefix}")
+                        self._emotion_applied_for_utterance = True
 
-                # Update TTS config if callback provided
-                if self._update_tts_config:
+                # Update TTS config if callback provided (do this once per utterance too)
+                if self._update_tts_config and not self._emotion_applied_for_utterance:
                     config = generate_cartesia_config(state)
                     try:
                         await self._update_tts_config(config)

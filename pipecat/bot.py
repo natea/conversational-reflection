@@ -151,6 +151,49 @@ MCP_TOOL_INFO = {
 }
 
 
+def _extract_mcp_result(result: Any) -> Optional[Dict[str, Any]]:
+    """Extract the actual data from an MCP tool result.
+
+    MCP results can be wrapped in various ways:
+    - Direct JSON string
+    - Dict with 'content' array containing {type: 'text', text: 'json_string'}
+    - Direct dict
+
+    Returns the parsed JSON data or None if parsing fails.
+    """
+    if result is None:
+        return None
+
+    try:
+        # If it's already a dict with the expected structure, return it
+        if isinstance(result, dict):
+            # Check if it's an MCP content wrapper
+            if "content" in result and isinstance(result["content"], list):
+                for item in result["content"]:
+                    if isinstance(item, dict) and item.get("type") == "text":
+                        text = item.get("text", "")
+                        if text:
+                            return json.loads(text)
+            # Otherwise check if it has direct emotion data
+            elif "emotions" in result or "body_state" in result or "current_state" in result:
+                return result
+
+        # If it's a string, try to parse as JSON
+        if isinstance(result, str):
+            return json.loads(result)
+
+        # If it has a 'text' attribute (like some response objects)
+        if hasattr(result, "text"):
+            return json.loads(result.text)
+
+        # Try converting to string and parsing
+        return json.loads(str(result))
+
+    except (json.JSONDecodeError, TypeError, AttributeError) as e:
+        logger.debug(f"Could not extract MCP result: {e}, result type: {type(result)}")
+        return None
+
+
 def log_mcp_tool_call(tool_name: str, args: dict, result: Optional[Any] = None):
     """Log when an MCP tool is called with a friendly description.
 
@@ -179,23 +222,18 @@ def log_mcp_tool_call(tool_name: str, args: dict, result: Optional[Any] = None):
         # Capture emotional state updates from sable-mcp
         if tool_name == "get_emotional_state" and result:
             try:
-                # Parse the result if it's a string
-                if isinstance(result, str):
-                    state_data = json.loads(result)
-                else:
-                    state_data = result
-                update_emotional_state(state_data)
-            except (json.JSONDecodeError, TypeError) as e:
+                state_data = _extract_mcp_result(result)
+                if state_data:
+                    update_emotional_state(state_data)
+                    logger.info(f"🎭 Captured emotional state: {len(state_data.get('emotions', []))} emotions")
+            except Exception as e:
                 logger.warning(f"Failed to parse emotional state: {e}")
 
         # Also update on feel_emotion calls
         if tool_name == "feel_emotion" and result:
             try:
-                if isinstance(result, str):
-                    result_data = json.loads(result)
-                else:
-                    result_data = result
-                if "current_state" in result_data:
+                result_data = _extract_mcp_result(result)
+                if result_data and "current_state" in result_data:
                     # Reconstruct full state from feel_emotion response
                     current = result_data["current_state"]
                     state = {
@@ -205,7 +243,8 @@ def log_mcp_tool_call(tool_name: str, args: dict, result: Optional[Any] = None):
                         "last_updated": datetime.now().isoformat(),
                     }
                     update_emotional_state(state)
-            except (json.JSONDecodeError, TypeError) as e:
+                    logger.info(f"🎭 Updated emotions from feel_emotion: {state['emotions']}")
+            except Exception as e:
                 logger.warning(f"Failed to parse feel_emotion result: {e}")
     else:
         logger.info(f"🔧 Tool call: {tool_name}")
@@ -390,6 +429,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
    - Problematic conversations (conflicts, stress, concerning patterns)
 5. Use analyze_emotion on any notable messages
 6. Check your journal (search_journal) for any prior context about these contacts or the user
+7. Ignore any messages from numbers that are only 5 digits long. These are likely system messages.
 
 Then greet the user warmly. If you noticed something interesting or meaningful in their messages,
 you might gently bring it up - but be sensitive and let them lead the conversation.
