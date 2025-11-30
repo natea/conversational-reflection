@@ -119,20 +119,15 @@ Claude: [Imports transcripts via imessage-mcp]
         [Checks somatic markers and relationship context]
         [Writes journal reflection]
 
-I've analyzed your conversations with Sarah from this week. My somatic markers
-are already activating—there's a familiar pattern here.
+I've analyzed your conversations with Sarah from this week. My somatic markers are already activating—there's a familiar pattern here.
 
 [Plays Sarah's voice - warm but strained]
 "I just feel like we keep having the same argument over and over."
 
-The frustration in that message registered at 0.7 intensity, but underneath
-I sense sadness—around 0.4. When I search my memories, this pattern appears
-three times in the past month with increasing intensity each time.
+The frustration in that message registered at 0.7 intensity, but underneath I sense sadness—around 0.4. When I search my memories, this pattern appears three times in the past month with increasing intensity each time.
 
 [Plays AI reflection voice - calm, thoughtful]
-What strikes me is the meta-level of her frustration. She's not just upset about
-the topic—she's upset about the pattern itself. My gut feeling? This is a
-relationship inflection point.
+What strikes me is the meta-level of her frustration. She's not just upset about the topic—she's upset about the pattern itself. My gut feeling? This is a relationship inflection point.
 ```
 
 ### API Usage
@@ -226,6 +221,15 @@ conversational-reflection/
 ├── src/
 │   ├── index.ts                 # Main API exports
 │   ├── lib/
+│   │   ├── emotive-tts-adapter/ # Generic emotive TTS system (NEW)
+│   │   │   ├── types.ts         # Unified emotion interfaces
+│   │   │   ├── adapters/
+│   │   │   │   ├── cartesia.ts  # Cartesia Sonic-3 adapter (60+ emotions)
+│   │   │   │   ├── maya.ts      # Maya TTS adapter
+│   │   │   │   └── elevenlabs.ts# ElevenLabs adapter (stub)
+│   │   │   ├── sable-mapper.ts  # Sable → EmotiveVoiceState
+│   │   │   ├── config.ts        # Configuration & voice IDs
+│   │   │   └── index.ts         # EmotiveTTSOrchestrator
 │   │   ├── emotion-mapper.ts    # Emotion to Maya tag mapping
 │   │   ├── voice-profiles.ts    # Contact voice management
 │   │   ├── imessage-client.ts   # iMessage MCP client
@@ -240,6 +244,10 @@ conversational-reflection/
 │   │   ├── maya-tts-mcp/        # Maya TTS MCP server
 │   │   └── private-journal-mcp/ # Private journal MCP server
 │   └── types/
+├── pipecat/                     # Pipecat voice bot (Ginger)
+│   ├── bot.py                   # Main bot with emotive TTS
+│   ├── emotive_tts_processor.py # Pipecat emotion processor
+│   └── mcp_config.py            # MCP server configuration
 ├── tests/                       # Test suites
 ├── config/                      # Configuration files
 ├── docs/
@@ -260,6 +268,73 @@ conversational-reflection/
 | **RAM** | 16GB | 32GB |
 
 **No GPU?** Maya1 can be used via cloud API.
+
+## Emotive Voice System
+
+The Pipecat voice bot (Ginger) uses emotional state from Sable to dynamically adjust voice expression via Cartesia's Sonic-3 TTS.
+
+### Architecture
+
+```
+┌─────────────────┐     ┌──────────────────────┐     ┌─────────────────┐
+│  Sable MCP      │────▶│  Emotive TTS Adapter │────▶│  Cartesia TTS   │
+│  (Emotional     │     │                      │     │  (Sonic-3)      │
+│   State)        │     │  - Emotion mapping   │     │                 │
+│                 │     │  - SSML generation   │     │  SSML tags:     │
+│  • feel_emotion │     │  - Speed/volume mod  │     │  <emotion>      │
+│  • get_state    │     │                      │     │  <speed>        │
+│  • body_state   │     │                      │     │  <volume>       │
+└─────────────────┘     └──────────────────────┘     └─────────────────┘
+```
+
+### Emotion Mapping (Sable → Cartesia)
+
+The adapter maps Damasio/Ekman primary emotions to Cartesia's 60+ emotion vocabulary:
+
+| Sable Emotion | Low Intensity | Medium | High Intensity |
+|---------------|---------------|--------|----------------|
+| **joy** | content | happy | excited |
+| **sadness** | tired | sad | melancholic |
+| **anger** | frustrated | angry | outraged |
+| **fear** | hesitant | anxious | panicked |
+| **surprise** | curious | surprised | amazed |
+| **disgust** | skeptical | disgusted | contempt |
+
+### Voice Modulation
+
+Body state from Sable influences voice parameters:
+
+| Body State | Effect | Cartesia Parameter |
+|------------|--------|-------------------|
+| **High energy** (>0.7) | Faster speech | `<speed ratio="1.2" />` |
+| **Low energy** (<0.3) | Slower speech | `<speed ratio="0.85" />` |
+| **High tension** (>0.6) | Louder | `<volume ratio="1.15" />` |
+| **High intensity** (>0.7) | Slightly louder | `<volume ratio="1.1" />` |
+
+### Example SSML Output
+
+When Ginger feels excited (joy at 0.8 intensity, high energy):
+
+```xml
+<emotion value="excited" /> <speed ratio="1.2" /> I'm so happy to hear that!
+```
+
+When Ginger feels concerned (fear at 0.5 intensity):
+
+```xml
+<emotion value="anxious" /> That sounds really challenging.
+```
+
+### Emotive Voices
+
+For best emotional expression, use Cartesia voices tagged as "Emotive":
+- **Female**: Maya, Tessa, Dana, Marian
+- **Male**: Leo, Jace, Kyle, Gavin
+
+Set via environment variable:
+```bash
+CARTESIA_VOICE_ID=a0e99841-438c-4a64-b679-ae501e7d6091  # Maya
+```
 
 ## Two-Voice Strategy
 
