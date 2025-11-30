@@ -330,6 +330,7 @@ class EmotiveTTSProcessor(FrameProcessor):
         if self._get_emotional_state:
             try:
                 sable_state = await self._get_emotional_state()
+                logger.debug(f"🎭 Raw sable state: emotions={sable_state.get('emotions', [])}")
                 self._current_state = map_sable_to_emotive_state(sable_state)
             except Exception as e:
                 logger.warning(f"Failed to get emotional state: {e}")
@@ -357,12 +358,12 @@ class EmotiveTTSProcessor(FrameProcessor):
             if isinstance(frame, LLMFullResponseStartFrame):
                 self._in_llm_response = True
                 self._emotion_applied_for_utterance = False
-                logger.debug("🎭 LLM response started - will apply emotion to first text frame")
+                logger.info("🎭 LLM response started - will apply emotion to first text frame")
 
             elif isinstance(frame, LLMFullResponseEndFrame):
                 self._in_llm_response = False
                 self._emotion_applied_for_utterance = False
-                logger.debug("🎭 LLM response ended")
+                logger.info("🎭 LLM response ended")
 
             elif isinstance(frame, (TextFrame, TTSTextFrame)):
                 # Get current emotional state

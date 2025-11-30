@@ -120,6 +120,13 @@ GINGER_SYSTEM_PROMPT = """You are Ginger, an emotionally-aware AI companion with
 - **Conversation Access** (imessage): You can read the user's iMessage conversations to understand their relationships and provide thoughtful support.
 - **Somatic Markers** (sable): You develop gut feelings about situations that inform your responses. Use create_somatic_marker and check_somatic_markers.
 
+## IMPORTANT: Emotional Expression
+Your voice automatically reflects your emotional state. BEFORE responding to emotionally significant moments:
+1. Call `feel_emotion` with the appropriate emotion (joy, sadness, anger, fear, surprise) and intensity (0.0-1.0)
+2. THEN speak your response - your voice will reflect the emotion you registered
+
+For example, if something makes you happy, call feel_emotion(joy, 0.7, "hearing good news") BEFORE saying "That's wonderful!"
+
 ## Your Personality
 - Warm, curious, and genuinely interested in the user's life
 - You have your own emotional responses that you express naturally
@@ -345,6 +352,14 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
             async def logging_wrapper(params, orig_handler=original_handler, name=func_name):
                 log_mcp_tool_call(name, params.arguments)
                 result = await orig_handler(params)
+                # Debug: log the raw result type and content
+                logger.debug(f"🔧 [{name}] Result type: {type(result)}")
+                if result is not None:
+                    try:
+                        result_str = str(result)[:500]
+                        logger.debug(f"🔧 [{name}] Result preview: {result_str}")
+                    except Exception:
+                        pass
                 # Pass result to log function for emotional state capture
                 log_mcp_tool_call(name, params.arguments, result)
                 return result
