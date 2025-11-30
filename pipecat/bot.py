@@ -34,6 +34,7 @@ Environment variables:
 """
 
 import os
+from datetime import datetime
 from enum import Enum
 from typing import Any, List, cast
 
@@ -696,6 +697,13 @@ class RoleplaySession:
         self.coaching_scores: list[dict] = []
         self.recording_active = False
         self.session_id: str | None = None
+        # Emotional state
+        self.current_emotion: str = "neutral"
+        self.emotion_intensity: float = 0.5
+        # Memory and journal
+        self.memories: list[dict] = []
+        self.somatic_markers: list[dict] = []
+        self.journal_entries: list[dict] = []
 
 # Global session state
 roleplay_session = RoleplaySession()
@@ -768,6 +776,248 @@ async def handle_tool_call(params: FunctionCallParams):
             result = {"status": "error", "error": str(e)}
             await params.result_callback(result)
             return
+    
+    elif tool_name == "list_chats":
+        try:
+            from imessage_client import list_conversations
+            chats = await list_conversations(limit=tool_args.get("limit", 50))
+            result = {"status": "success", "chats": chats, "count": len(chats)}
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"list_chats failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "watch_messages":
+        # Real-time message watching isn't feasible in a request/response model
+        # Return helpful info about using get_messages with polling instead
+        result = {
+            "status": "info",
+            "message": "Real-time watching not available. Use get_messages periodically to check for new messages.",
+            "suggestion": "Call get_messages with a recent timestamp to poll for updates"
+        }
+        await params.result_callback(result)
+        return
+    
+    # ==========================================================================
+    # Sable Emotional Tools - In-memory emotional state
+    # ==========================================================================
+    
+    elif tool_name == "analyze_emotion":
+        text = tool_args.get("text", "")
+        # Basic emotion analysis using pattern matching
+        emotions_detected = []
+        patterns = {
+            "anger": ["angry", "furious", "mad", "frustrated", "annoyed", "irritated"],
+            "sadness": ["sad", "depressed", "hurt", "disappointed", "lonely", "grief"],
+            "fear": ["afraid", "scared", "anxious", "worried", "nervous", "terrified"],
+            "joy": ["happy", "excited", "grateful", "proud", "hopeful", "content"],
+            "guilt": ["guilty", "ashamed", "embarrassed", "regret", "sorry"],
+            "love": ["love", "care", "appreciate", "cherish", "adore"],
+            "resentment": ["resentful", "bitter", "vengeful", "grudge"],
+            "relief": ["relieved", "calm", "peaceful", "at ease"]
+        }
+        text_lower = text.lower()
+        for emotion, keywords in patterns.items():
+            if any(kw in text_lower for kw in keywords):
+                emotions_detected.append(emotion)
+        
+        # Analyze intensity based on intensifiers
+        intensity = 0.5
+        if any(word in text_lower for word in ["very", "extremely", "so", "really", "incredibly"]):
+            intensity = 0.8
+        if any(word in text_lower for word in ["slightly", "a bit", "somewhat", "kind of"]):
+            intensity = 0.3
+        
+        result = {
+            "status": "success",
+            "text": text,
+            "emotions_detected": emotions_detected if emotions_detected else ["neutral"],
+            "primary_emotion": emotions_detected[0] if emotions_detected else "neutral",
+            "intensity": intensity,
+            "analysis": f"Detected {len(emotions_detected)} emotion(s) in the text"
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "feel_emotion":
+        emotion = tool_args.get("emotion", "neutral")
+        intensity = tool_args.get("intensity", 0.5)
+        
+        # Update roleplay session emotional state
+        roleplay_session.current_emotion = emotion
+        roleplay_session.emotion_intensity = intensity
+        
+        result = {
+            "status": "success",
+            "emotion": emotion,
+            "intensity": intensity,
+            "acknowledgment": f"Feeling {emotion} at intensity {intensity}"
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "get_emotional_state":
+        result = {
+            "status": "success",
+            "current_emotion": getattr(roleplay_session, 'current_emotion', 'neutral'),
+            "intensity": getattr(roleplay_session, 'emotion_intensity', 0.5),
+            "roleplay_active": roleplay_session.active,
+            "persona_style": roleplay_session.persona_style
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "record_memory":
+        content = tool_args.get("content", "")
+        valence = tool_args.get("emotional_valence", 0.0)
+        
+        # Store in roleplay session memories
+        if not hasattr(roleplay_session, 'memories'):
+            roleplay_session.memories = []
+        
+        memory_id = f"mem_{len(roleplay_session.memories) + 1}"
+        memory = {
+            "id": memory_id,
+            "content": content,
+            "emotional_valence": valence,
+            "timestamp": datetime.now().isoformat()
+        }
+        roleplay_session.memories.append(memory)
+        
+        result = {
+            "status": "success",
+            "memory_id": memory_id,
+            "content": content,
+            "emotional_valence": valence
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "query_memories":
+        query = tool_args.get("query", "").lower()
+        
+        memories = getattr(roleplay_session, 'memories', [])
+        matched = [m for m in memories if query in m.get("content", "").lower()]
+        
+        result = {
+            "status": "success",
+            "query": query,
+            "matches": matched,
+            "count": len(matched)
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "create_somatic_marker":
+        situation = tool_args.get("situation", "")
+        feeling = tool_args.get("feeling", "")
+        
+        if not hasattr(roleplay_session, 'somatic_markers'):
+            roleplay_session.somatic_markers = []
+        
+        marker = {
+            "situation": situation,
+            "feeling": feeling,
+            "timestamp": datetime.now().isoformat()
+        }
+        roleplay_session.somatic_markers.append(marker)
+        
+        result = {
+            "status": "success",
+            "marker_created": marker
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "check_somatic_markers":
+        topic = tool_args.get("topic", "").lower()
+        
+        markers = getattr(roleplay_session, 'somatic_markers', [])
+        matched = [m for m in markers if topic in m.get("situation", "").lower()]
+        
+        result = {
+            "status": "success",
+            "topic": topic,
+            "gut_feelings": matched,
+            "count": len(matched)
+        }
+        await params.result_callback(result)
+        return
+    
+    # ==========================================================================
+    # Journal Tools - In-memory journal storage
+    # ==========================================================================
+    
+    elif tool_name == "process_thoughts":
+        content = tool_args.get("content", "")
+        
+        if not hasattr(roleplay_session, 'journal_entries'):
+            roleplay_session.journal_entries = []
+        
+        entry_id = f"journal_{len(roleplay_session.journal_entries) + 1}"
+        entry = {
+            "id": entry_id,
+            "content": content,
+            "timestamp": datetime.now().isoformat(),
+            "type": "thought"
+        }
+        roleplay_session.journal_entries.append(entry)
+        
+        result = {
+            "status": "success",
+            "entry_id": entry_id,
+            "content": content,
+            "message": "Thought recorded to journal"
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "search_journal":
+        query = tool_args.get("query", "").lower()
+        
+        entries = getattr(roleplay_session, 'journal_entries', [])
+        matched = [e for e in entries if query in e.get("content", "").lower()]
+        
+        result = {
+            "status": "success",
+            "query": query,
+            "matches": matched,
+            "count": len(matched)
+        }
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "read_journal_entry":
+        entry_id = tool_args.get("entry_id", "")
+        
+        entries = getattr(roleplay_session, 'journal_entries', [])
+        entry = next((e for e in entries if e.get("id") == entry_id), None)
+        
+        if entry:
+            result = {"status": "success", "entry": entry}
+        else:
+            result = {"status": "not_found", "entry_id": entry_id}
+        
+        await params.result_callback(result)
+        return
+    
+    elif tool_name == "list_recent_entries":
+        limit = tool_args.get("limit", 10)
+        
+        entries = getattr(roleplay_session, 'journal_entries', [])
+        recent = entries[-limit:] if entries else []
+        
+        result = {
+            "status": "success",
+            "entries": recent,
+            "count": len(recent),
+            "total": len(entries)
+        }
+        await params.result_callback(result)
+        return
     
     # ==========================================================================
     # Conflict Analysis Tools - Uses real iMessage data
@@ -1204,6 +1454,45 @@ async def handle_tool_call(params: FunctionCallParams):
             return
         except Exception as e:
             logger.error(f"infer_voice_profile failed: {e}")
+            result = {"status": "error", "error": str(e)}
+            await params.result_callback(result)
+            return
+    
+    elif tool_name == "create_contact_voice_profile":
+        # Uses infer_voice_profile with real iMessage data
+        try:
+            from voice_synthesis import infer_voice_profile
+            from imessage_client import get_messages
+            
+            contact = tool_args.get("contact", "")
+            gender = tool_args.get("voice_gender")
+            age_range = tool_args.get("age_range")
+            
+            # Fetch real messages for analysis
+            try:
+                messages = await get_messages(contact=contact, limit=50)
+                message_texts = [{"text": m.get("text", ""), "is_from_me": m.get("is_from_me", False)} for m in messages]
+            except Exception as fetch_err:
+                logger.warning(f"Could not fetch messages for voice profile: {fetch_err}")
+                message_texts = []
+            
+            # Infer profile from messages
+            result = infer_voice_profile(
+                contact_name=contact,
+                messages=message_texts,
+                relationship_hint=f"{gender or 'unknown'} in {age_range or 'unknown age'}"
+            )
+            
+            # Override with provided parameters if specified
+            if gender and result.get("profile"):
+                result["profile"]["gender"] = gender
+            if age_range and result.get("profile"):
+                result["profile"]["age_range"] = age_range
+            
+            await params.result_callback(result)
+            return
+        except Exception as e:
+            logger.error(f"create_contact_voice_profile failed: {e}")
             result = {"status": "error", "error": str(e)}
             await params.result_callback(result)
             return
