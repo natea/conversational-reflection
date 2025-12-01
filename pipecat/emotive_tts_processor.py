@@ -13,8 +13,7 @@ This processor:
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Any, List, Callable, Awaitable
-import json
+from typing import Optional, Dict, Any, Callable, Awaitable
 
 from loguru import logger
 
@@ -273,6 +272,39 @@ def generate_cartesia_config(state: EmotiveVoiceState) -> Dict[str, Any]:
     return config
 
 
+def generate_roleplay_ssml(
+    emotion: str,
+    speed: float = 1.0,
+    volume: float = 1.0,
+) -> str:
+    """Generate SSML tags for roleplay mode (direct injection, no sable-mcp).
+
+    This bypasses the emotional state lookup for lower latency during roleplay.
+
+    Args:
+        emotion: Cartesia emotion string (e.g., "angry", "sad", "defensive")
+        speed: Speech speed modifier (0.5-2.0)
+        volume: Volume modifier (0.5-2.0)
+
+    Returns:
+        SSML tag string to prepend to text
+    """
+    tags = []
+
+    # Emotion tag
+    tags.append(f'<emotion value="{emotion}" />')
+
+    # Speed tag (for character voice differentiation)
+    if abs(speed - 1.0) > 0.05:
+        tags.append(f'<speed ratio="{speed:.2f}" />')
+
+    # Volume tag
+    if abs(volume - 1.0) > 0.05:
+        tags.append(f'<volume ratio="{volume:.2f}" />')
+
+    return " ".join(tags)
+
+
 class EmotiveTTSProcessor(FrameProcessor):
     """
     Pipecat processor that applies emotional state to TTS generation.
@@ -280,9 +312,14 @@ class EmotiveTTSProcessor(FrameProcessor):
     This processor intercepts text frames before they reach the TTS service
     and applies emotional SSML tags based on the current emotional state.
 
+    Supports two modes:
+    1. Normal mode: Queries sable-mcp for emotional state
+    2. Roleplay mode: Uses direct emotion injection for low latency
+
     Usage:
         processor = EmotiveTTSProcessor(
             get_emotional_state=get_sable_state,
+            get_roleplay_state=get_roleplay_state,
             use_ssml=True
         )
 
@@ -300,6 +337,7 @@ class EmotiveTTSProcessor(FrameProcessor):
         self,
         *,
         get_emotional_state: Optional[Callable[[], Awaitable[Dict[str, Any]]]] = None,
+        get_roleplay_state: Optional[Callable[[], Dict[str, Any]]] = None,
         use_ssml: bool = True,
         update_tts_config: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None,
         log_emotions: bool = True,
@@ -310,12 +348,14 @@ class EmotiveTTSProcessor(FrameProcessor):
 
         Args:
             get_emotional_state: Async function that returns sable-mcp emotional state
+            get_roleplay_state: Sync function that returns roleplay state (for bypass mode)
             use_ssml: Whether to inject SSML tags into text
             update_tts_config: Optional callback to update TTS service config
             log_emotions: Whether to log emotion changes
         """
         super().__init__(**kwargs)
         self._get_emotional_state = get_emotional_state
+        self._get_roleplay_state = get_roleplay_state
         self._use_ssml = use_ssml
         self._update_tts_config = update_tts_config
         self._log_emotions = log_emotions
@@ -348,6 +388,31 @@ class EmotiveTTSProcessor(FrameProcessor):
 
         return self._current_state
 
+    def _is_roleplay_active(self) -> bool:
+        """Check if roleplay mode is active."""
+        if self._get_roleplay_state:
+            roleplay_state = self._get_roleplay_state()
+            return roleplay_state.get("active", False)
+        return False
+
+    def _get_roleplay_ssml(self) -> Optional[str]:
+        """Get SSML tags for roleplay mode (bypasses sable-mcp for low latency)."""
+        if not self._get_roleplay_state:
+            return None
+
+        roleplay_state = self._get_roleplay_state()
+        if not roleplay_state.get("active"):
+            return None
+
+        emotion = roleplay_state.get("character_emotion", "neutral")
+        voice_mods = roleplay_state.get("voice_modifiers", {})
+        speed = voice_mods.get("speed", 1.0)
+
+        # Increase volume slightly for character differentiation
+        volume = 1.05 if roleplay_state.get("character") else 1.0
+
+        return generate_roleplay_ssml(emotion, speed, volume)
+
     async def process_frame(self, frame: Frame, direction: FrameDirection) -> None:
         """Process frames and apply emotional state to TTS text"""
         await super().process_frame(frame, direction)
@@ -366,43 +431,64 @@ class EmotiveTTSProcessor(FrameProcessor):
                 logger.debug("🎭 LLM response ended")
 
             elif isinstance(frame, (TextFrame, TTSTextFrame)):
-                # Get current emotional state
-                state = await self._get_current_state()
+                # Check if we're in roleplay mode (bypass sable-mcp for low latency)
+                if self._is_roleplay_active():
+                    # ROLEPLAY MODE: Direct SSML injection, no sable-mcp round-trip
+                    if self._use_ssml and not self._emotion_applied_for_utterance:
+                        original_text = frame.text if hasattr(frame, 'text') else str(frame)
+                        ssml_prefix = self._get_roleplay_ssml()
 
-                # Log emotion changes
-                current_emotion = select_cartesia_emotion(state)
-                if self._log_emotions and current_emotion != self._last_emotion:
-                    logger.info(
-                        f"🎭 Emotion: {current_emotion} "
-                        f"(primary: {state.primary_emotion.value}, "
-                        f"intensity: {state.intensity:.0%})"
-                    )
-                    self._last_emotion = current_emotion
+                        if ssml_prefix:
+                            modified_text = f"{ssml_prefix} {original_text}"
 
-                # Only apply SSML tags ONCE at the start of the utterance
-                if self._use_ssml and not self._emotion_applied_for_utterance:
-                    original_text = frame.text if hasattr(frame, 'text') else str(frame)
-                    ssml_prefix = generate_ssml_prefix(state, self._use_ssml)
+                            if isinstance(frame, TTSTextFrame):
+                                frame = TTSTextFrame(text=modified_text)
+                            else:
+                                frame = TextFrame(text=modified_text)
 
-                    if ssml_prefix:
-                        modified_text = f"{ssml_prefix} {original_text}"
+                            roleplay_state = self._get_roleplay_state()
+                            character = roleplay_state.get("character", "character")
+                            emotion = roleplay_state.get("character_emotion", "neutral")
+                            logger.info(f"🎭 Roleplay [{character}]: {ssml_prefix} (emotion: {emotion})")
+                            self._emotion_applied_for_utterance = True
+                else:
+                    # NORMAL MODE: Use sable-mcp emotional state
+                    state = await self._get_current_state()
 
-                        # Create new frame with modified text
-                        if isinstance(frame, TTSTextFrame):
-                            frame = TTSTextFrame(text=modified_text)
-                        else:
-                            frame = TextFrame(text=modified_text)
+                    # Log emotion changes
+                    current_emotion = select_cartesia_emotion(state)
+                    if self._log_emotions and current_emotion != self._last_emotion:
+                        logger.info(
+                            f"🎭 Emotion: {current_emotion} "
+                            f"(primary: {state.primary_emotion.value}, "
+                            f"intensity: {state.intensity:.0%})"
+                        )
+                        self._last_emotion = current_emotion
 
-                        logger.info(f"🎭 Applied emotion tags: {ssml_prefix}")
-                        self._emotion_applied_for_utterance = True
+                    # Only apply SSML tags ONCE at the start of the utterance
+                    if self._use_ssml and not self._emotion_applied_for_utterance:
+                        original_text = frame.text if hasattr(frame, 'text') else str(frame)
+                        ssml_prefix = generate_ssml_prefix(state, self._use_ssml)
 
-                # Update TTS config if callback provided (do this once per utterance too)
-                if self._update_tts_config and not self._emotion_applied_for_utterance:
-                    config = generate_cartesia_config(state)
-                    try:
-                        await self._update_tts_config(config)
-                    except Exception as e:
-                        logger.warning(f"Failed to update TTS config: {e}")
+                        if ssml_prefix:
+                            modified_text = f"{ssml_prefix} {original_text}"
+
+                            # Create new frame with modified text
+                            if isinstance(frame, TTSTextFrame):
+                                frame = TTSTextFrame(text=modified_text)
+                            else:
+                                frame = TextFrame(text=modified_text)
+
+                            logger.info(f"🎭 Applied emotion tags: {ssml_prefix}")
+                            self._emotion_applied_for_utterance = True
+
+                    # Update TTS config if callback provided (do this once per utterance too)
+                    if self._update_tts_config and not self._emotion_applied_for_utterance:
+                        config = generate_cartesia_config(state)
+                        try:
+                            await self._update_tts_config(config)
+                        except Exception as e:
+                            logger.warning(f"Failed to update TTS config: {e}")
 
         await self.push_frame(frame, direction)
 

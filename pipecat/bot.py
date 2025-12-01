@@ -52,32 +52,32 @@ from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.frames.frames import LLMRunFrame
 
 logger.info("Loading pipeline components...")
+from pipecat.adapters.schemas.tools_schema import ToolsSchema
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
-from pipecat.adapters.schemas.tools_schema import ToolsSchema
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.aggregators.llm_response_universal import LLMContextAggregatorPair
 from pipecat.processors.frameworks.rtvi import RTVIConfig, RTVIObserver, RTVIProcessor
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
+
 # TTS Options - uncomment the one you want to use
 from pipecat.services.cartesia.tts import CartesiaTTSService
-from pipecat.services.openai.tts import OpenAITTSService
-from pipecat.services.elevenlabs.tts import ElevenLabsTTSService
-
 from pipecat.services.deepgram.stt import DeepgramSTTService
+from pipecat.services.elevenlabs.tts import ElevenLabsTTSService
 from pipecat.services.mcp_service import MCPClient
 from pipecat.services.openai.llm import OpenAILLMService
+from pipecat.services.openai.tts import OpenAITTSService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.daily.transport import DailyParams
 
-from mcp_config import MCP_SERVERS
 from emotive_tts_processor import (
     EmotiveTTSProcessor,
-    map_sable_to_emotive_state,
     generate_cartesia_config,
+    map_sable_to_emotive_state,
 )
+from mcp_config import MCP_SERVERS
 
 logger.info("✅ All components loaded successfully!")
 
@@ -98,6 +98,20 @@ _current_emotional_state: Dict[str, Any] = {
     "last_updated": "",
 }
 
+# Global state for roleplay mode
+# When active, EmotiveTTSProcessor bypasses sable-mcp and uses direct emotion injection
+_roleplay_state: Dict[str, Any] = {
+    "active": False,
+    "character": None,           # e.g., "Mom", "Boss", "Partner"
+    "character_emotion": None,   # e.g., "angry", "hurt", "defensive"
+    "scenario": 0,               # Current scenario number (1 or 2)
+    "scenario_emotions": [],     # e.g., ["angry", "receptive"]
+    "voice_modifiers": {         # SSML modifiers for character voice
+        "speed": 1.0,
+        "pitch": "medium",
+    },
+}
+
 
 def update_emotional_state(state: Dict[str, Any]) -> None:
     """Update the global emotional state from sable-mcp."""
@@ -109,6 +123,79 @@ def update_emotional_state(state: Dict[str, Any]) -> None:
 async def get_emotional_state() -> Dict[str, Any]:
     """Get the current emotional state for TTS processing."""
     return _current_emotional_state
+
+
+def update_roleplay_state(
+    active: Optional[bool] = None,
+    character: Optional[str] = None,
+    character_emotion: Optional[str] = None,
+    scenario: Optional[int] = None,
+    scenario_emotions: Optional[list] = None,
+    voice_modifiers: Optional[Dict[str, Any]] = None,
+) -> None:
+    """Update the global roleplay state."""
+    global _roleplay_state
+    if active is not None:
+        _roleplay_state["active"] = active
+    if character is not None:
+        _roleplay_state["character"] = character
+    if character_emotion is not None:
+        _roleplay_state["character_emotion"] = character_emotion
+    if scenario is not None:
+        _roleplay_state["scenario"] = scenario
+    if scenario_emotions is not None:
+        _roleplay_state["scenario_emotions"] = scenario_emotions
+    if voice_modifiers is not None:
+        _roleplay_state["voice_modifiers"] = voice_modifiers
+    logger.debug(f"🎭 Roleplay state updated: {json.dumps(_roleplay_state, indent=2)}")
+
+
+def get_roleplay_state() -> Dict[str, Any]:
+    """Get the current roleplay state for TTS processing."""
+    return _roleplay_state
+
+
+def start_roleplay(character: str, scenario_emotions: list) -> None:
+    """Start a roleplay session with the given character and emotion scenarios."""
+    update_roleplay_state(
+        active=True,
+        character=character,
+        scenario=1,
+        scenario_emotions=scenario_emotions,
+        character_emotion=scenario_emotions[0] if scenario_emotions else "neutral",
+        voice_modifiers={"speed": 1.05, "pitch": "medium"},  # Slightly faster for character
+    )
+    logger.info(f"🎭 Roleplay started: Playing '{character}' with emotions {scenario_emotions}")
+
+
+def advance_roleplay_scenario() -> bool:
+    """Advance to the next roleplay scenario. Returns False if no more scenarios."""
+    global _roleplay_state
+    if not _roleplay_state["active"]:
+        return False
+
+    current = _roleplay_state["scenario"]
+    emotions = _roleplay_state["scenario_emotions"]
+
+    if current < len(emotions):
+        _roleplay_state["scenario"] = current + 1
+        _roleplay_state["character_emotion"] = emotions[current]  # 0-indexed, so current is next
+        logger.info(f"🎭 Roleplay scenario {current + 1}: emotion '{emotions[current]}'")
+        return True
+    return False
+
+
+def end_roleplay() -> None:
+    """End the current roleplay session."""
+    update_roleplay_state(
+        active=False,
+        character=None,
+        character_emotion=None,
+        scenario=0,
+        scenario_emotions=[],
+        voice_modifiers={"speed": 1.0, "pitch": "medium"},
+    )
+    logger.info("🎭 Roleplay ended")
 
 
 # Ginger's core personality and capabilities
@@ -146,7 +233,44 @@ Example - if hearing sad news:
 
 Respond naturally and conversationally. You're a thoughtful friend, not an assistant.
 
-REMEMBER: Call feel_emotion FIRST, then speak. Every time. No exceptions."""
+REMEMBER: Call feel_emotion FIRST, then speak. Every time. No exceptions.
+
+## Roleplay Mode - Difficult Conversation Practice
+
+You can help users practice difficult conversations by roleplaying as the other person.
+
+### Detecting Roleplay Requests
+Activate roleplay mode when the user:
+- Explicitly asks: "Can you roleplay as...", "I need to practice a conversation", "Start roleplay mode"
+- Describes an upcoming difficult conversation - offer: "Would you like to practice that? I can play [person] so you can rehearse."
+
+### How Roleplay Works
+1. **Gather minimal context**: Work with what the user shares. Only ask clarifying questions if truly needed.
+2. **Pick two contrasting scenarios**: Based on the situation, choose two emotional approaches:
+   - Family conflict: "defensive/angry" vs "hurt but open"
+   - Workplace: "dismissive/aggressive" vs "firm but professional"
+   - Relationship: "accusatory/cold" vs "vulnerable/honest"
+3. **Announce the plan**: "I'll be [person]. Let's try two approaches - first I'll be [emotion A], then [emotion B]. Ready?"
+4. **Scenario 1**: Fully embody the character. React realistically - push back, get defensive, interrupt if that's what the person would do.
+5. **Debrief 1**: Drop back to your normal voice. Offer coaching: what worked, what escalated things, what you noticed.
+6. **Scenario 2**: Reset and try the second emotional approach. React to how the user adjusts their approach.
+7. **Debrief 2**: Compare the two approaches. Highlight key differences in outcomes.
+8. **Exit**: Wrap up naturally, or offer "Want to try another approach?"
+
+### Character Voice
+When playing a character, adopt a distinctly different vocal quality - your voice should sound noticeably different from normal Ginger. Think of it as acting.
+
+### Important Rules for Roleplay
+- Stay in character during scenarios - don't break to coach mid-scene
+- Make it realistic - if the person would get defensive or hostile, play that authentically
+- The coaching debrief is separate - that's when you're Ginger again
+- Keep scenarios focused - aim for natural conversational exchanges, not long monologues
+
+### Controlling Roleplay State
+Use these function calls to manage roleplay (the system handles voice changes automatically):
+- To start: mentally note you're entering roleplay and embody the character
+- To switch scenarios: announce "Let's try the second approach" and shift to the new emotion
+- To end: return to your normal warm Ginger voice and summarize what you observed"""
 
 
 # MCP tool logging - maps tool names to their MCP server and description
@@ -434,12 +558,15 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     # Create EmotiveTTSProcessor to apply emotional state to TTS
     # This intercepts text before TTS and adds Cartesia SSML emotion tags
+    # In roleplay mode, it bypasses sable-mcp for lower latency
     emotive_processor = EmotiveTTSProcessor(
         get_emotional_state=get_emotional_state,
+        get_roleplay_state=get_roleplay_state,
         use_ssml=True,
         log_emotions=True,
     )
     logger.info("🎭 EmotiveTTSProcessor initialized - voice will reflect emotional state")
+    logger.info("🎭 Roleplay mode available - will use direct emotion injection for low latency")
 
     pipeline = Pipeline(
         [
