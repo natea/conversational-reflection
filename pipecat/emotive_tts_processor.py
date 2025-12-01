@@ -459,20 +459,20 @@ class EmotiveTTSProcessor(FrameProcessor):
                             self._emotion_applied_for_utterance = True
                 else:
                     # NORMAL MODE: Use sable-mcp emotional state
-                    state = await self._get_current_state()
-
-                    # Log emotion changes
-                    current_emotion = select_cartesia_emotion(state)
-                    if self._log_emotions and current_emotion != self._last_emotion:
-                        logger.info(
-                            f"🎭 Emotion: {current_emotion} "
-                            f"(primary: {state.primary_emotion.value}, "
-                            f"intensity: {state.intensity:.0%})"
-                        )
-                        self._last_emotion = current_emotion
-
-                    # Only apply SSML tags ONCE at the start of the utterance
+                    # Only fetch state and apply tags ONCE per utterance
                     if self._use_ssml and not self._emotion_applied_for_utterance:
+                        state = await self._get_current_state()
+
+                        # Log emotion changes
+                        current_emotion = select_cartesia_emotion(state)
+                        if self._log_emotions and current_emotion != self._last_emotion:
+                            logger.info(
+                                f"🎭 Emotion: {current_emotion} "
+                                f"(primary: {state.primary_emotion.value}, "
+                                f"intensity: {state.intensity:.0%})"
+                            )
+                            self._last_emotion = current_emotion
+
                         original_text = frame.text if hasattr(frame, 'text') else str(frame)
                         ssml_prefix = generate_ssml_prefix(state, self._use_ssml)
 
@@ -486,15 +486,16 @@ class EmotiveTTSProcessor(FrameProcessor):
                                 frame = TextFrame(text=modified_text)
 
                             logger.info(f"🎭 Applied emotion tags: {ssml_prefix}")
-                            self._emotion_applied_for_utterance = True
 
-                    # Update TTS config if callback provided (do this once per utterance too)
-                    if self._update_tts_config and not self._emotion_applied_for_utterance:
-                        config = generate_cartesia_config(state)
-                        try:
-                            await self._update_tts_config(config)
-                        except Exception as e:
-                            logger.warning(f"Failed to update TTS config: {e}")
+                        self._emotion_applied_for_utterance = True
+
+                        # Update TTS config if callback provided
+                        if self._update_tts_config:
+                            config = generate_cartesia_config(state)
+                            try:
+                                await self._update_tts_config(config)
+                            except Exception as e:
+                                logger.warning(f"Failed to update TTS config: {e}")
 
         await self.push_frame(frame, direction)
 
