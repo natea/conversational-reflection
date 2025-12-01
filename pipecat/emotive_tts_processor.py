@@ -272,6 +272,70 @@ def generate_cartesia_config(state: EmotiveVoiceState) -> Dict[str, Any]:
     return config
 
 
+# Map roleplay emotions to valid Cartesia emotions
+# Cartesia Sonic supports: anger, positivity, surprise, sadness, curiosity
+# Format: emotion_name:level (lowest, low, [default], high, highest)
+ROLEPLAY_EMOTION_MAP = {
+    # Angry/hostile emotions -> anger
+    "angry": "anger:high",
+    "defensive": "anger",
+    "hostile": "anger:highest",
+    "frustrated": "anger:low",
+    "annoyed": "anger:low",
+    "mad": "anger:high",
+    "outraged": "anger:highest",
+
+    # Sad/hurt emotions -> sadness
+    "sad": "sadness:high",
+    "hurt": "sadness",
+    "disappointed": "sadness:low",
+    "melancholic": "sadness:high",
+    "worried": "sadness:low",
+    "concerned": "sadness:low",
+
+    # Positive/receptive emotions -> positivity
+    "receptive": "positivity",
+    "understanding": "positivity:high",
+    "warm": "positivity:high",
+    "happy": "positivity:high",
+    "excited": "positivity:highest",
+    "content": "positivity:low",
+    "open": "positivity",
+
+    # Curious/questioning emotions -> curiosity
+    "curious": "curiosity:high",
+    "skeptical": "curiosity",
+    "questioning": "curiosity",
+    "confused": "curiosity:low",
+
+    # Surprised emotions -> surprise
+    "surprised": "surprise:high",
+    "shocked": "surprise:highest",
+    "amazed": "surprise:high",
+
+    # Dismissive/cold -> low positivity (inverse)
+    "dismissive": "anger:low",
+    "cold": "sadness:low",
+    "distant": "sadness:low",
+
+    # Neutral - no emotion tag
+    "neutral": None,
+}
+
+
+def map_roleplay_emotion(emotion: str) -> Optional[str]:
+    """Map a roleplay emotion to a valid Cartesia emotion tag.
+
+    Args:
+        emotion: The roleplay emotion (e.g., "angry", "worried", "receptive")
+
+    Returns:
+        Cartesia emotion string (e.g., "anger:high") or None for neutral
+    """
+    emotion_lower = emotion.lower().strip()
+    return ROLEPLAY_EMOTION_MAP.get(emotion_lower, None)
+
+
 def generate_roleplay_ssml(
     emotion: str,
     speed: float = 1.0,
@@ -282,7 +346,7 @@ def generate_roleplay_ssml(
     This bypasses the emotional state lookup for lower latency during roleplay.
 
     Args:
-        emotion: Cartesia emotion string (e.g., "angry", "sad", "defensive")
+        emotion: Roleplay emotion string (e.g., "angry", "worried", "defensive")
         speed: Speech speed modifier (0.5-2.0)
         volume: Volume modifier (0.5-2.0)
 
@@ -291,8 +355,10 @@ def generate_roleplay_ssml(
     """
     tags = []
 
-    # Emotion tag
-    tags.append(f'<emotion value="{emotion}" />')
+    # Map roleplay emotion to valid Cartesia emotion
+    cartesia_emotion = map_roleplay_emotion(emotion)
+    if cartesia_emotion:
+        tags.append(f'<emotion name="{cartesia_emotion}" />')
 
     # Speed tag (for character voice differentiation)
     if abs(speed - 1.0) > 0.05:
