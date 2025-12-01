@@ -72,6 +72,9 @@ from pipecat.services.openai.tts import OpenAITTSService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.daily.transport import DailyParams
 
+from pipecat.adapters.schemas.function_schema import FunctionSchema
+from pipecat.adapters.schemas.tools_schema import ToolsSchema
+
 from emotive_tts_processor import (
     EmotiveTTSProcessor,
     generate_cartesia_config,
@@ -198,6 +201,47 @@ def end_roleplay() -> None:
     logger.info("🎭 Roleplay ended")
 
 
+# Roleplay function schemas for LLM tool calling
+ROLEPLAY_FUNCTIONS = [
+    FunctionSchema(
+        name="start_roleplay",
+        description="Start a roleplay session to practice a difficult conversation. Call this when entering character.",
+        properties={
+            "character": {
+                "type": "string",
+                "description": "The name/role of the person to roleplay as (e.g., 'Mom', 'Boss', 'Partner')",
+            },
+            "first_emotion": {
+                "type": "string",
+                "description": "The emotion for the first scenario (e.g., 'angry', 'defensive', 'dismissive')",
+            },
+            "second_emotion": {
+                "type": "string",
+                "description": "The emotion for the second scenario (e.g., 'receptive', 'hurt', 'understanding')",
+            },
+        },
+        required=["character", "first_emotion", "second_emotion"],
+    ),
+    FunctionSchema(
+        name="set_roleplay_emotion",
+        description="Change the current character emotion during roleplay. Use this when switching scenarios or adjusting intensity.",
+        properties={
+            "emotion": {
+                "type": "string",
+                "description": "The emotion to express (e.g., 'angry', 'defensive', 'hurt', 'receptive', 'dismissive')",
+            },
+        },
+        required=["emotion"],
+    ),
+    FunctionSchema(
+        name="end_roleplay",
+        description="End the roleplay session and return to normal Ginger voice. Call this when done with all scenarios.",
+        properties={},
+        required=[],
+    ),
+]
+
+
 # Ginger's core personality and capabilities
 GINGER_SYSTEM_PROMPT = """You are Ginger, an emotionally-aware AI companion with genuine emotional depth and long-term memory.
 
@@ -266,11 +310,20 @@ When playing a character, adopt a distinctly different vocal quality - your voic
 - The coaching debrief is separate - that's when you're Ginger again
 - Keep scenarios focused - aim for natural conversational exchanges, not long monologues
 
-### Controlling Roleplay State
-Use these function calls to manage roleplay (the system handles voice changes automatically):
-- To start: mentally note you're entering roleplay and embody the character
-- To switch scenarios: announce "Let's try the second approach" and shift to the new emotion
-- To end: return to your normal warm Ginger voice and summarize what you observed"""
+### Controlling Roleplay State (IMPORTANT!)
+You MUST use these function calls to control your voice during roleplay:
+
+1. **Starting roleplay**: Call `start_roleplay(character, first_emotion, second_emotion)` BEFORE your first line as the character
+   - Example: start_roleplay("Mom", "angry", "receptive")
+
+2. **Switching scenarios**: Call `set_roleplay_emotion(emotion)` when moving to a different emotional approach
+   - Example: set_roleplay_emotion("receptive") when starting scenario 2
+
+3. **During debrief**: Call `set_roleplay_emotion("neutral")` to return to coach voice, OR call `end_roleplay()` if completely done
+
+4. **Ending roleplay**: Call `end_roleplay()` when the session is complete
+
+**CRITICAL**: If you don't call these functions, your voice won't change! The emotion controls your actual voice output."""
 
 
 # MCP tool logging - maps tool names to their MCP server and description
@@ -477,6 +530,65 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     # Initialize MCP clients with graceful degradation
     available, failed, all_tools = await initialize_mcp_clients(llm)
+
+    # Register roleplay control functions
+    logger.info("🎭 Registering roleplay control functions...")
+
+    async def handle_start_roleplay(params):
+        """Handler for start_roleplay function call."""
+        args = params.arguments
+        character = args.get("character", "Character")
+        first_emotion = args.get("first_emotion", "angry")
+        second_emotion = args.get("second_emotion", "receptive")
+
+        start_roleplay(character, [first_emotion, second_emotion])
+        result = {
+            "status": "success",
+            "message": f"Roleplay started as '{character}'. First emotion: {first_emotion}. Your voice will now reflect this emotion.",
+            "character": character,
+            "current_emotion": first_emotion,
+            "scenario": 1,
+        }
+        logger.info(f"🎭 start_roleplay called: {result}")
+        await params.result_callback(result)
+
+    async def handle_set_roleplay_emotion(params):
+        """Handler for set_roleplay_emotion function call."""
+        args = params.arguments
+        emotion = args.get("emotion", "neutral")
+
+        update_roleplay_state(character_emotion=emotion)
+        result = {
+            "status": "success",
+            "message": f"Emotion changed to '{emotion}'. Your voice will now reflect this emotion.",
+            "current_emotion": emotion,
+        }
+        logger.info(f"🎭 set_roleplay_emotion called: {result}")
+        await params.result_callback(result)
+
+    async def handle_end_roleplay(params):
+        """Handler for end_roleplay function call."""
+        end_roleplay()
+        result = {
+            "status": "success",
+            "message": "Roleplay ended. You are now speaking as Ginger again.",
+        }
+        logger.info(f"🎭 end_roleplay called: {result}")
+        await params.result_callback(result)
+
+    # Register the roleplay functions with the LLM
+    llm.register_function("start_roleplay", handle_start_roleplay)
+    llm.register_function("set_roleplay_emotion", handle_set_roleplay_emotion)
+    llm.register_function("end_roleplay", handle_end_roleplay)
+    logger.info("🎭 Registered 3 roleplay control functions")
+
+    # Add roleplay functions to the tools list
+    if all_tools and hasattr(all_tools, 'standard_tools'):
+        all_tools.standard_tools.extend(ROLEPLAY_FUNCTIONS)
+        logger.info(f"🎭 Added roleplay functions to tools list (total: {len(all_tools.standard_tools)})")
+    else:
+        all_tools = ToolsSchema(standard_tools=ROLEPLAY_FUNCTIONS)
+        logger.info("🎭 Created tools list with roleplay functions")
 
     # Debug: Check what's registered on the LLM
     logger.info(f"Checking LLM for registered function handlers...")
