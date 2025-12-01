@@ -389,10 +389,16 @@ class EmotiveTTSProcessor(FrameProcessor):
         return self._current_state
 
     def _is_roleplay_active(self) -> bool:
-        """Check if roleplay mode is active."""
+        """Check if roleplay mode is active AND we're in character (not neutral/debrief)."""
         if self._get_roleplay_state:
             roleplay_state = self._get_roleplay_state()
-            return roleplay_state.get("active", False)
+            # Roleplay is only "active" for voice purposes when:
+            # 1. The session is active
+            # 2. The emotion is NOT neutral (neutral = debrief/coach voice)
+            is_active = roleplay_state.get("active", False)
+            emotion = roleplay_state.get("character_emotion", "neutral")
+            # When emotion is neutral, fall back to normal Ginger voice
+            return is_active and emotion != "neutral"
         return False
 
     def _get_roleplay_ssml(self) -> Optional[str]:
