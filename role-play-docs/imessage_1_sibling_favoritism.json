@@ -1,0 +1,195 @@
+{
+  "scenario_id": "1_sibling_favoritism",
+  "title": "iMessage History: Sibling Favoritism",
+  "description": "Text message history showing pattern of parental favoritism leading up to the car purchase incident",
+  "participants": {
+    "protagonist": "You",
+    "mom": "Mom",
+    "dad": "Dad",
+    "brother": "Jake (struggling sibling)"
+  },
+  "message_history": [
+    {
+      "timestamp": "2024-11-01T14:23:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Hey Mom, can we talk about something? I'm dealing with some medical bills from my surgery and was wondering if you might be able to help out a little?"
+    },
+    {
+      "timestamp": "2024-11-01T15:47:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Honey, things are really tight right now. We're helping Jake get back on his feet. You're doing so well at your job, I'm sure you can handle it!"
+    },
+    {
+      "timestamp": "2024-11-01T15:49:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "I know, but it's $8,000. I've been really responsible with money but this is a lot."
+    },
+    {
+      "timestamp": "2024-11-01T16:02:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I know sweetie but Jake really needs us right now. You're so strong and capable. We believe in you!"
+    },
+    {
+      "timestamp": "2024-11-15T11:20:00Z",
+      "sender": "Jake (brother)",
+      "recipient": "Family Group Chat",
+      "message": "Thanks Mom and Dad for helping with rent again 🙏 You guys are the best"
+    },
+    {
+      "timestamp": "2024-11-15T11:22:00Z",
+      "sender": "Mom",
+      "recipient": "Family Group Chat",
+      "message": "Of course honey! That's what family is for ❤️"
+    },
+    {
+      "timestamp": "2024-11-20T19:45:00Z",
+      "sender": "Jake (brother)",
+      "recipient": "Family Group Chat",
+      "message": "Lost my job again. Boss was an a**hole. Can I stay with you guys for a bit?"
+    },
+    {
+      "timestamp": "2024-11-20T19:48:00Z",
+      "sender": "Dad",
+      "recipient": "Family Group Chat",
+      "message": "Of course son. Door is always open."
+    },
+    {
+      "timestamp": "2024-11-28T13:10:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Hey Dad, I hate to ask but I'm really struggling with these medical bills. Any chance you could help out even a little? Like $1000?"
+    },
+    {
+      "timestamp": "2024-11-28T18:30:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "Your mother and I discussed it. We think you're capable of handling this on your own. You've always been the responsible one."
+    },
+    {
+      "timestamp": "2024-11-28T18:35:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "But you just paid Jake's rent for the 3rd time this year..."
+    },
+    {
+      "timestamp": "2024-11-28T18:45:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "That's different. He's going through a tough time."
+    },
+    {
+      "timestamp": "2024-11-28T18:47:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "And I'm not? I had surgery Dad."
+    },
+    {
+      "timestamp": "2024-11-28T18:50:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "We need to go. Talk later."
+    },
+    {
+      "timestamp": "2024-12-01T10:15:00Z",
+      "sender": "Jake (brother)",
+      "recipient": "Family Group Chat",
+      "message": "OMG!!! Mom and Dad got me a car!! 🚗🚗 A 2022 Honda!! I can't believe it!!"
+    },
+    {
+      "timestamp": "2024-12-01T10:16:00Z",
+      "sender": "Mom",
+      "recipient": "Family Group Chat",
+      "message": "We wanted to help you get to job interviews! We love you! 💕"
+    },
+    {
+      "timestamp": "2024-12-01T10:17:00Z",
+      "sender": "Dad",
+      "recipient": "Family Group Chat",
+      "message": "Proud of you son. This will help you turn things around."
+    },
+    {
+      "timestamp": "2024-12-01T10:25:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "You bought him a CAR?!"
+    },
+    {
+      "timestamp": "2024-12-01T10:30:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "He needed it to get to work."
+    },
+    {
+      "timestamp": "2024-12-01T10:31:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "He doesn't HAVE work. And you said you couldn't help me with my medical debt THREE DAYS AGO."
+    },
+    {
+      "timestamp": "2024-12-01T10:35:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "That's not fair. We do what we can for both of you. Your situation is different."
+    },
+    {
+      "timestamp": "2024-12-01T10:36:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "How is it different? You have money for a CAR but not $1000 for my surgery bills?"
+    },
+    {
+      "timestamp": "2024-12-01T10:40:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Why are you trying to make this about you? Your brother needs help right now."
+    },
+    {
+      "timestamp": "2024-12-01T10:42:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "I needed help too. I ASKED for help. You said no."
+    },
+    {
+      "timestamp": "2024-12-01T10:45:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "You're being ungrateful. After everything we've done for you."
+    },
+    {
+      "timestamp": "2024-12-01T10:50:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Dad, can we please talk about this? This doesn't feel fair."
+    },
+    {
+      "timestamp": "2024-12-01T11:02:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Your father doesn't want to talk right now. You've upset him."
+    },
+    {
+      "timestamp": "2024-12-01T11:15:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "I need to call you. Can we talk tonight?"
+    },
+    {
+      "timestamp": "2024-12-01T11:20:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Fine. But I hope you'll be more reasonable."
+    }
+  ],
+  "context_notes": {
+    "pattern_established": "Multiple instances of financial support for Jake, repeated refusals for protagonist",
+    "emotional_buildup": "Protagonist tried asking nicely multiple times before confrontation",
+    "triggering_incident": "Car purchase announcement in family group chat while protagonist was denied help",
+    "current_state": "Protagonist is preparing to have difficult conversation with Mom",
+    "parent_responses_shown": "Defensiveness, deflection, guilt-tripping, protecting Jake"
+  },
+  "roleplay_entry_point": "The conversation will begin with the scheduled phone call where protagonist needs to address the favoritism pattern."
+}

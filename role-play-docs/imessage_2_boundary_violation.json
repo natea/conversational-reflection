@@ -1,0 +1,237 @@
+{
+  "scenario_id": "2_boundary_violation",
+  "title": "iMessage History: Boundary Violation & Privacy Breach",
+  "description": "Text message history showing escalating pattern of enmeshment and privacy violations",
+  "participants": {
+    "protagonist": "You (28 years old)",
+    "mom": "Mom",
+    "aunt": "Aunt Linda",
+    "therapist": "Dr. Chen (only in phone contacts)"
+  },
+  "message_history": [
+    {
+      "timestamp": "2024-10-15T08:30:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Good morning sweetie! What are you eating for breakfast? Are you eating enough protein?"
+    },
+    {
+      "timestamp": "2024-10-15T12:45:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Just checking in! How was your morning? Did you take your vitamins?"
+    },
+    {
+      "timestamp": "2024-10-15T15:20:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I saw you were online but didn't respond. Everything okay? I'm worried."
+    },
+    {
+      "timestamp": "2024-10-15T17:00:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, I was just busy at work. I'm fine!"
+    },
+    {
+      "timestamp": "2024-10-22T19:30:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I noticed you lost weight in your last Instagram photo. Are you eating enough? Should I come over and make you dinner?"
+    },
+    {
+      "timestamp": "2024-10-22T19:45:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "I'm eating fine Mom, I promise. I'm an adult, I can take care of myself 😊"
+    },
+    {
+      "timestamp": "2024-10-22T19:50:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I know honey, I just worry. That's what mothers do!"
+    },
+    {
+      "timestamp": "2024-11-05T14:15:00Z",
+      "sender": "You",
+      "recipient": "Friend Sarah",
+      "message": "Just had my first therapy session. Dr. Chen was really helpful with my anxiety."
+    },
+    {
+      "timestamp": "2024-11-05T14:16:00Z",
+      "sender": "Friend Sarah",
+      "recipient": "You",
+      "message": "That's awesome! Proud of you for taking that step 💪"
+    },
+    {
+      "timestamp": "2024-11-10T11:00:00Z",
+      "sender": "You",
+      "recipient": "Friend Sarah",
+      "message": "Second therapy session went well. Working on setting boundaries with family lol"
+    },
+    {
+      "timestamp": "2024-11-10T11:05:00Z",
+      "sender": "Friend Sarah",
+      "recipient": "You",
+      "message": "Good for you!! You've got this 🙌"
+    },
+    {
+      "timestamp": "2024-11-28T16:40:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Hi honey! I stopped by your apartment to drop off some leftovers. You weren't home so I used my key. Left food in your fridge! ❤️"
+    },
+    {
+      "timestamp": "2024-11-28T17:20:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, I wish you'd text before coming over. I'm not always available."
+    },
+    {
+      "timestamp": "2024-11-28T17:25:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I wanted it to be a surprise! You're so busy, I thought I'd help. Why are you upset?"
+    },
+    {
+      "timestamp": "2024-11-29T09:15:00Z",
+      "sender": "Mom",
+      "recipient": "Aunt Linda",
+      "message": "Linda, I'm really worried about Sarah. I found some things when I was at her apartment yesterday."
+    },
+    {
+      "timestamp": "2024-11-29T09:20:00Z",
+      "sender": "Aunt Linda",
+      "recipient": "Mom",
+      "message": "What things? Is she okay?"
+    },
+    {
+      "timestamp": "2024-11-29T09:25:00Z",
+      "sender": "Mom",
+      "recipient": "Aunt Linda",
+      "message": "She's seeing a therapist. For ANXIETY. Her phone was on the counter and I saw messages about it. I think she's really struggling mentally and won't tell me."
+    },
+    {
+      "timestamp": "2024-11-29T09:30:00Z",
+      "sender": "Aunt Linda",
+      "recipient": "Mom",
+      "message": "Oh no! That's concerning. Did you talk to her about it?"
+    },
+    {
+      "timestamp": "2024-11-29T09:35:00Z",
+      "sender": "Mom",
+      "recipient": "Aunt Linda",
+      "message": "Not yet. I don't want her to know I looked at her phone. But I'm going to send her some articles about how therapy can make things worse. She needs to know."
+    },
+    {
+      "timestamp": "2024-11-29T14:20:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Honey, I've been reading about therapy and I'm worried. A lot of therapists just want your money. Have you considered talking to Pastor Mike instead?"
+    },
+    {
+      "timestamp": "2024-11-29T14:25:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, I'm fine. I don't need to talk to Pastor Mike."
+    },
+    {
+      "timestamp": "2024-11-29T14:30:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I just think you should know that therapy can make mental health WORSE. I found this article..."
+    },
+    {
+      "timestamp": "2024-11-29T14:35:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "[Link to anti-therapy article]"
+    },
+    {
+      "timestamp": "2024-11-29T14:40:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, how do you even know I'm in therapy?"
+    },
+    {
+      "timestamp": "2024-11-29T14:42:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I saw it when I was at your place. Your phone was sitting there."
+    },
+    {
+      "timestamp": "2024-11-29T14:43:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "You went through my phone?!?"
+    },
+    {
+      "timestamp": "2024-11-29T14:45:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I didn't GO THROUGH it, it was just sitting there and I happened to see a message."
+    },
+    {
+      "timestamp": "2024-11-29T14:46:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "That's going through my phone. That's private."
+    },
+    {
+      "timestamp": "2024-11-29T14:50:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I'm your MOTHER. I was just looking out for you! After everything I've done for you, this is how you treat me?"
+    },
+    {
+      "timestamp": "2024-11-29T15:00:00Z",
+      "sender": "Aunt Linda",
+      "recipient": "You",
+      "message": "Hey sweetie, your mom mentioned you're going through a tough time. I'm here if you need to talk ❤️"
+    },
+    {
+      "timestamp": "2024-11-29T15:05:00Z",
+      "sender": "You",
+      "recipient": "Aunt Linda",
+      "message": "What did she tell you?"
+    },
+    {
+      "timestamp": "2024-11-29T15:08:00Z",
+      "sender": "Aunt Linda",
+      "recipient": "You",
+      "message": "Just that you're dealing with some mental health stuff. She's really worried about you."
+    },
+    {
+      "timestamp": "2024-11-29T15:10:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "You told Aunt Linda about my therapy?? Mom, that was PRIVATE."
+    },
+    {
+      "timestamp": "2024-11-29T15:15:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "She's FAMILY. And I'm worried about you! You're being so secretive and defensive. That's not healthy."
+    },
+    {
+      "timestamp": "2024-11-29T15:20:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "We need to talk about this. Can I call you tonight?"
+    },
+    {
+      "timestamp": "2024-11-29T15:25:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Fine. But I hope you'll be less hurtful. I was just trying to help."
+    }
+  ],
+  "context_notes": {
+    "pattern_established": "Escalating intrusive behavior: constant check-ins → unannounced visits → reading phone → sharing private info",
+    "emotional_manipulation": "Uses 'I'm just worried' and 'after everything I've done' to justify violations",
+    "boundary_history": "Protagonist has tried gentle pushback ('I was busy', 'I'm an adult') but not firm boundaries yet",
+    "triggering_incident": "Mom read private texts about therapy, then told family about mental health without permission",
+    "current_state": "Protagonist needs to set firm boundary with consequences"
+  },
+  "roleplay_entry_point": "The phone call where protagonist must address the privacy violation and set clear boundaries."
+}
