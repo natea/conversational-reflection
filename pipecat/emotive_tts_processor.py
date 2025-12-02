@@ -60,6 +60,9 @@ class EmotiveVoiceState:
 
 
 # Cartesia emotion mapping based on primary emotion and intensity
+# Valid Cartesia emotions: happy, excited, enthusiastic, angry, mad, outraged, frustrated,
+# sad, dejected, melancholic, disappointed, hurt, anxious, panicked, scared, content, calm,
+# curious, surprised, amazed, neutral, contempt, skeptical, confused, resigned, etc.
 CARTESIA_EMOTION_MAP = {
     PrimaryEmotion.JOY: {
         "low": "content",
@@ -67,7 +70,7 @@ CARTESIA_EMOTION_MAP = {
         "high": "excited",
     },
     PrimaryEmotion.SADNESS: {
-        "low": "tired",
+        "low": "disappointed",
         "medium": "sad",
         "high": "melancholic",
     },
@@ -77,13 +80,13 @@ CARTESIA_EMOTION_MAP = {
         "high": "outraged",
     },
     PrimaryEmotion.FEAR: {
-        "low": "hesitant",
+        "low": "anxious",
         "medium": "anxious",
         "high": "panicked",
     },
     PrimaryEmotion.DISGUST: {
         "low": "skeptical",
-        "medium": "disgusted",
+        "medium": "contempt",
         "high": "contempt",
     },
     PrimaryEmotion.SURPRISE: {
@@ -94,7 +97,7 @@ CARTESIA_EMOTION_MAP = {
     PrimaryEmotion.NEUTRAL: {
         "low": "calm",
         "medium": "neutral",
-        "high": "contemplative",
+        "high": "calm",
     },
 }
 
@@ -145,10 +148,13 @@ def infer_nuanced_emotion(
     intensity: float,
     body_state: Optional[BodyState]
 ) -> Optional[str]:
-    """Infer nuanced emotion from primary emotion and context"""
+    """Infer nuanced emotion from primary emotion and context.
+
+    Returns valid Cartesia emotion strings only.
+    """
     if primary == PrimaryEmotion.JOY:
         if intensity > 0.8:
-            return "euphoric"
+            return "enthusiastic"  # euphoric -> enthusiastic
         if intensity > 0.6:
             return "excited"
         if body_state and body_state.energy < 0.4:
@@ -159,8 +165,8 @@ def infer_nuanced_emotion(
         if intensity > 0.8:
             return "dejected"
         if body_state and body_state.energy < 0.3:
-            return "tired"
-        return "melancholic" if intensity > 0.5 else "wistful"
+            return "disappointed"  # tired -> disappointed
+        return "melancholic" if intensity > 0.5 else "nostalgic"  # wistful -> nostalgic
 
     if primary == PrimaryEmotion.ANGER:
         if intensity > 0.8:
@@ -273,50 +279,51 @@ def generate_cartesia_config(state: EmotiveVoiceState) -> Dict[str, Any]:
 
 
 # Map roleplay emotions to valid Cartesia emotions
-# Cartesia Sonic supports: anger, positivity, surprise, sadness, curiosity
-# Format: emotion_name:level (lowest, low, [default], high, highest)
+# Cartesia Sonic supports simple emotion strings like: angry, sad, excited, content, scared, neutral
+# See full list: happy, excited, enthusiastic, angry, mad, outraged, frustrated, sad, dejected,
+# melancholic, disappointed, hurt, anxious, panicked, scared, content, calm, etc.
 ROLEPLAY_EMOTION_MAP = {
-    # Angry/hostile emotions -> anger
-    "angry": "anger:high",
-    "defensive": "anger",
-    "hostile": "anger:highest",
-    "frustrated": "anger:low",
-    "annoyed": "anger:low",
-    "mad": "anger:high",
-    "outraged": "anger:highest",
+    # Angry/hostile emotions
+    "angry": "angry",
+    "defensive": "frustrated",
+    "hostile": "outraged",
+    "frustrated": "frustrated",
+    "annoyed": "agitated",
+    "mad": "mad",
+    "outraged": "outraged",
 
-    # Sad/hurt emotions -> sadness
-    "sad": "sadness:high",
-    "hurt": "sadness",
-    "disappointed": "sadness:low",
-    "melancholic": "sadness:high",
-    "worried": "sadness:low",
-    "concerned": "sadness:low",
+    # Sad/hurt emotions
+    "sad": "sad",
+    "hurt": "hurt",
+    "disappointed": "disappointed",
+    "melancholic": "melancholic",
+    "worried": "anxious",
+    "concerned": "anxious",
 
-    # Positive/receptive emotions -> positivity
-    "receptive": "positivity",
-    "understanding": "positivity:high",
-    "warm": "positivity:high",
-    "happy": "positivity:high",
-    "excited": "positivity:highest",
-    "content": "positivity:low",
-    "open": "positivity",
+    # Positive/receptive emotions
+    "receptive": "content",
+    "understanding": "sympathetic",
+    "warm": "affectionate",
+    "happy": "happy",
+    "excited": "excited",
+    "content": "content",
+    "open": "content",
 
-    # Curious/questioning emotions -> curiosity
-    "curious": "curiosity:high",
-    "skeptical": "curiosity",
-    "questioning": "curiosity",
-    "confused": "curiosity:low",
+    # Curious/questioning emotions
+    "curious": "curious",
+    "skeptical": "skeptical",
+    "questioning": "curious",
+    "confused": "confused",
 
-    # Surprised emotions -> surprise
-    "surprised": "surprise:high",
-    "shocked": "surprise:highest",
-    "amazed": "surprise:high",
+    # Surprised emotions
+    "surprised": "surprised",
+    "shocked": "amazed",
+    "amazed": "amazed",
 
-    # Dismissive/cold -> low positivity (inverse)
-    "dismissive": "anger:low",
-    "cold": "sadness:low",
-    "distant": "sadness:low",
+    # Dismissive/cold
+    "dismissive": "contempt",
+    "cold": "distant",
+    "distant": "distant",
 
     # Neutral - no emotion tag
     "neutral": None,
@@ -358,7 +365,7 @@ def generate_roleplay_ssml(
     # Map roleplay emotion to valid Cartesia emotion
     cartesia_emotion = map_roleplay_emotion(emotion)
     if cartesia_emotion:
-        tags.append(f'<emotion name="{cartesia_emotion}" />')
+        tags.append(f'<emotion value="{cartesia_emotion}" />')
 
     # Speed tag (for character voice differentiation)
     if abs(speed - 1.0) > 0.05:
