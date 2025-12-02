@@ -25,20 +25,3 @@ coordination/orchestration/*
 claude-flow
 # Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
-agentdb.db
-.private-journal-mcp
-.private-journal/
-
-# NodeJS
-node_modules/
-dist/
-
-# MacOS
-.DS_Store
-
-# Secrets
-.env
-
-# Python
-venv
-.venv

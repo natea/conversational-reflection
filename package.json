@@ -17,6 +17,7 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
+    "@cartesia/cartesia-js": "^2.2.9",
     "zod": "^3.23.0"
   },
   "devDependencies": {
