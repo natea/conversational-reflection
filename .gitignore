@@ -43,4 +43,4 @@ dist/
 venv
 .venv
 __pycache__/
-*.pyc
+*.pycginger_rp/
