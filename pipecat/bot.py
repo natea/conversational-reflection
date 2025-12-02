@@ -28,10 +28,10 @@ Run the bot using::
     uv run bot.py --transport webrtc
 """
 
-import os
 import json
+import os
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from dotenv import load_dotenv
 from loguru import logger
