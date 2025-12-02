@@ -42,3 +42,5 @@ dist/
 # Python 
 venv
 .venv
+pipecat/__pycache__/*
+pipecat/**/*.pyc
