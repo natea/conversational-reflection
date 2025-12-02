@@ -508,18 +508,40 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     # Use an emotive voice for better emotional expression
     # Recommended emotive voices: Leo, Jace, Kyle, Gavin, Maya, Tessa, Dana, Marian
-    # Default voice_id is for "Maya" - a warm, expressive female voice
+    # Default voice_id is for "Tessa" - a warm, expressive female voice
     emotive_voice_id = os.getenv(
         "CARTESIA_VOICE_ID",
         "6ccbfb76-1fc6-48f7-b71d-91ac6298247b"  # Default voice
     )
 
+    # Import GenerationConfig for Sonic-3 emotion control
+    from pipecat.services.cartesia.tts import GenerationConfig
+
     tts = CartesiaTTSService(
         api_key=os.getenv("CARTESIA_API_KEY"),
         voice_id=emotive_voice_id,
         model="sonic-3",  # Use Sonic-3 for best emotion support
+        params=CartesiaTTSService.InputParams(
+            generation_config=GenerationConfig(emotion="neutral")
+        ),
     )
     logger.info(f"🎤 Cartesia TTS initialized with voice: {emotive_voice_id[:8]}... (Sonic-3)")
+
+    # Create callback to dynamically update TTS generation_config based on emotion
+    async def update_tts_emotion(config: dict):
+        """Update TTS generation_config with new emotion settings."""
+        emotion = config.get("emotion", "neutral")
+        speed = config.get("speed")
+        volume = config.get("volume")
+
+        # Update the TTS service's generation_config directly
+        new_config = GenerationConfig(
+            emotion=emotion,
+            speed=speed,
+            volume=volume,
+        )
+        tts._settings["generation_config"] = new_config
+        logger.debug(f"🎭 Updated TTS generation_config: emotion={emotion}, speed={speed}, volume={volume}")
 
     llm = OpenAILLMService(
         api_key=os.getenv("OPENAI_API_KEY"),
@@ -667,15 +689,18 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     rtvi = RTVIProcessor(config=RTVIConfig(config=[]))
 
     # Create EmotiveTTSProcessor to apply emotional state to TTS
-    # This intercepts text before TTS and adds Cartesia SSML emotion tags
+    # This uses BOTH approaches for maximum compatibility:
+    # 1. SSML tags in transcript for inline emotion control
+    # 2. generation_config.emotion for API-level emotion setting
     # In roleplay mode, it bypasses sable-mcp for lower latency
     emotive_processor = EmotiveTTSProcessor(
         get_emotional_state=get_emotional_state,
         get_roleplay_state=get_roleplay_state,
         use_ssml=True,
+        update_tts_config=update_tts_emotion,  # Also update generation_config
         log_emotions=True,
     )
-    logger.info("🎭 EmotiveTTSProcessor initialized - voice will reflect emotional state")
+    logger.info("🎭 EmotiveTTSProcessor initialized with dual emotion control (SSML + generation_config)")
     logger.info("🎭 Roleplay mode available - will use direct emotion injection for low latency")
 
     pipeline = Pipeline(
