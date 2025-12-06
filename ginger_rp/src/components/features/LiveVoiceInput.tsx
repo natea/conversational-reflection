@@ -50,7 +50,7 @@ const LiveWaveform: FC<{ isActive: boolean }> = ({ isActive }) => {
 }
 
 export const LiveVoiceInput: FC = () => {
-  const { connect, disconnect } = usePipecat()
+  const { connect, disconnect, client } = usePipecat()
   const {
     connectionStatus,
     isReady,
@@ -78,8 +78,13 @@ export const LiveVoiceInput: FC = () => {
   }, [isConnected, isConnecting, connect, disconnect])
 
   const handleMicToggle = useCallback(() => {
-    setMicEnabled(!isMicEnabled)
-  }, [isMicEnabled, setMicEnabled])
+    const newState = !isMicEnabled
+    // Actually enable/disable the microphone on the WebRTC client
+    if (client) {
+      client.enableMic(newState)
+    }
+    setMicEnabled(newState)
+  }, [isMicEnabled, setMicEnabled, client])
 
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault()
