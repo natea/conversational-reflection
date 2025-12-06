@@ -18,7 +18,7 @@ export interface RTVIErrorEvent {
 export type PipecatConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
 export interface PipecatConfig {
-  webrtcUrl: string
+  webrtcEndpoint: string
   enableMic?: boolean
   enableCam?: boolean
 }

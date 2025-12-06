@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   title: 'Ginger - Voice-First Emotional Reflection Companion',
   description: 'Ginger helps users understand their relationships and themselves through multiple psychological lenses.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.svg',
   },
 }
 
@@ -37,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${dmSans.variable} ${fraunces.variable} ${jetbrainsMono.variable}`}>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <PipecatProvider>
           <MainLayout>
             {children}

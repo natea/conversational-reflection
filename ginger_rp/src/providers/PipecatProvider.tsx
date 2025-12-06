@@ -21,12 +21,12 @@ const PipecatContext = createContext<PipecatContextValue | null>(null)
 
 interface PipecatProviderProps {
   children: ReactNode
-  webrtcUrl?: string
+  webrtcEndpoint?: string
 }
 
 export function PipecatProvider({
   children,
-  webrtcUrl = '/api/offer'
+  webrtcEndpoint = '/api/offer'
 }: PipecatProviderProps) {
   const [client, setClient] = useState<PipecatClient | null>(null)
   const [status, setStatus] = useState<ConnectionStatus>('disconnected')
@@ -135,7 +135,9 @@ export function PipecatProvider({
       }
 
       await client.connect({
-        webrtcUrl,
+        webrtcRequestParams: {
+          endpoint: webrtcEndpoint,
+        },
       })
 
       // Debug: Log the actual microphone being used after connection
@@ -170,7 +172,7 @@ export function PipecatProvider({
       setError(err instanceof Error ? err.message : 'Connection failed')
       setStatus('error')
     }
-  }, [client, webrtcUrl, selectedInputDeviceId])
+  }, [client, webrtcEndpoint, selectedInputDeviceId])
 
   const disconnect = useCallback(() => {
     if (!client) return
