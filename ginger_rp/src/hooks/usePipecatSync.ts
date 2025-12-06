@@ -14,6 +14,8 @@ export function usePipecatSync() {
   const userStoppedDebounceRef = useRef<NodeJS.Timeout | null>(null)
   // Track last saved utterance to prevent duplicates
   const lastSavedUtteranceRef = useRef<string>('')
+  // Track if we're in a new LLM response (to know when to reset bot utterance)
+  const isNewBotResponseRef = useRef<boolean>(true)
 
   // Select only the action functions we need (stable references)
   const setConnectionStatus = usePipecatStore((state) => state.setConnectionStatus)
@@ -119,9 +121,9 @@ export function usePipecatSync() {
       }, 300)
     }
 
-    // Bot started speaking - reset accumulated utterance
+    // Bot started speaking - just mark as speaking (don't reset utterance here!)
+    // The utterance is reset when first BotLlmText arrives to avoid race condition
     const handleBotStartedSpeaking = () => {
-      resetCurrentBotUtterance()
       setBotSpeaking(true)
     }
 
@@ -145,6 +147,8 @@ export function usePipecatSync() {
       setBotSpeaking(false)
       finalizeBotUtterance()
       setVoiceState('idle')
+      // Mark that next LLM text will be a new response
+      isNewBotResponseRef.current = true
     }
 
     // User transcript (interim)
@@ -163,6 +167,12 @@ export function usePipecatSync() {
     // This is the primary source for bot response display
     const handleBotLlmText = (data: { text: string }) => {
       console.log('[PipecatSync] Bot LLM text:', data.text)
+      // Reset utterance on first text of a new response to avoid race condition
+      // (LLM text arrives before BotStartedSpeaking event)
+      if (isNewBotResponseRef.current) {
+        resetCurrentBotUtterance()
+        isNewBotResponseRef.current = false
+      }
       // Accumulate LLM text for live display
       updateCurrentBotUtterance(data.text)
     }
