@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  env: {
-    PIPECAT_WEBRTC_URL: process.env.PIPECAT_WEBRTC_URL || 'http://localhost:7860/offer',
-  },
+  // NOTE: Do NOT expose full backend URLs to the client build here.
+  // Server-only environment variables (like PIPECAT_WEBRTC_URL) should be set
+  // in `.env.local` and accessed from server-side code (API routes). The
+  // application proxies voice requests through `/api/offer` to avoid CORS.
   // Allow cross-origin requests to Pipecat backend in development
   async headers() {
     return [

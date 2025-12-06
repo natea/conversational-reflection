@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${fraunces.variable} ${jetbrainsMono.variable}`}>
       <body className="antialiased">
-        <PipecatProvider>
+        <PipecatProvider webrtcUrl="/api/offer">
           <MainLayout>
             {children}
           </MainLayout>
