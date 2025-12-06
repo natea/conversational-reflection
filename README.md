@@ -2,6 +2,42 @@
 
 An AI companion that analyzes iMessage conversations, develops emotional responses through Damasio's consciousness model, maintains a private journal of reflections, and expresses insights through emotionally-authentic voice synthesis.
 
+## Quick Start
+
+```bash
+# Start both frontend and backend
+./dev.sh start
+
+# Stop both services
+./dev.sh stop
+
+# Restart services
+./dev.sh restart
+
+# Check status
+./dev.sh status
+```
+
+The frontend runs at **http://localhost:3000** and the backend at **ws://localhost:8765**.
+
+## Project Structure
+
+```
+conversational-reflection/
+├── frontend/          # Next.js web app (Ginger UI)
+│   ├── src/
+│   │   ├── app/       # Next.js pages
+│   │   ├── components/# React components
+│   │   ├── stores/    # Zustand state management
+│   │   └── providers/ # Context providers (Pipecat)
+│   └── package.json
+├── backend/           # Python voice bot (Pipecat)
+│   ├── bot.py         # Main bot with emotive TTS
+│   ├── emotive_tts_processor.py
+│   └── pyproject.toml
+└── dev.sh             # Development startup script
+```
+
 ## Overview
 
 This tool creates a reflective AI experience that can:
@@ -246,7 +282,7 @@ conversational-reflection/
 │   │   ├── maya-tts-mcp/        # Maya TTS MCP server
 │   │   └── private-journal-mcp/ # Private journal MCP server
 │   └── types/
-├── pipecat/                     # Pipecat voice bot (Ginger)
+├── backend/                     # Pipecat voice bot (Ginger)
 │   ├── bot.py                   # Main bot with emotive TTS
 │   ├── emotive_tts_processor.py # Pipecat emotion processor
 │   └── mcp_config.py            # MCP server configuration
