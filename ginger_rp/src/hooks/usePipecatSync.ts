@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { RTVIEvent } from '@pipecat-ai/client-js'
 import { usePipecat } from '@/providers/PipecatProvider'
 import { usePipecatStore } from '@/stores/usePipecatStore'
@@ -9,6 +9,11 @@ import { useConversationStore } from '@/stores/useConversationStore'
 
 export function usePipecatSync() {
   const { client, status, isReady } = usePipecat()
+
+  // Debounce timer for user stopped speaking to prevent rapid-fire message creation
+  const userStoppedDebounceRef = useRef<NodeJS.Timeout | null>(null)
+  // Track last saved utterance to prevent duplicates
+  const lastSavedUtteranceRef = useRef<string>('')
 
   // Select only the action functions we need (stable references)
   const setConnectionStatus = usePipecatStore((state) => state.setConnectionStatus)
@@ -70,25 +75,48 @@ export function usePipecatSync() {
     // User started speaking
     const handleUserStartedSpeaking = () => {
       console.log('[PipecatSync] User started speaking')
+      // Cancel any pending "stopped speaking" debounce - user is still talking
+      if (userStoppedDebounceRef.current) {
+        clearTimeout(userStoppedDebounceRef.current)
+        userStoppedDebounceRef.current = null
+      }
       setUserSpeaking(true)
       setVoiceState('listening')
     }
 
-    // User stopped speaking - save transcript to conversation store
+    // User stopped speaking - debounce and save transcript to conversation store
     const handleUserStoppedSpeaking = () => {
-      const utterance = getCurrentUserUtterance()
-      console.log('[PipecatSync] User stopped speaking, utterance:', utterance)
-      if (utterance.trim()) {
-        // Add user's voice transcript to conversation store
-        addConversationMessage({
-          role: 'user',
-          content: utterance.trim(),
-          isVoiceTranscript: true,
-        })
+      console.log('[PipecatSync] User stopped speaking event received')
+
+      // Cancel any existing debounce
+      if (userStoppedDebounceRef.current) {
+        clearTimeout(userStoppedDebounceRef.current)
       }
-      setUserSpeaking(false)
-      finalizeUserUtterance()
-      setVoiceState('processing')
+
+      // Debounce: wait 300ms before finalizing to allow for continued speech
+      userStoppedDebounceRef.current = setTimeout(() => {
+        const utterance = getCurrentUserUtterance()
+        console.log('[PipecatSync] Finalizing utterance after debounce:', utterance)
+
+        if (utterance.trim()) {
+          // Only save if this is a new utterance (not a duplicate)
+          if (utterance.trim() !== lastSavedUtteranceRef.current) {
+            lastSavedUtteranceRef.current = utterance.trim()
+            // Add user's voice transcript to conversation store
+            addConversationMessage({
+              role: 'user',
+              content: utterance.trim(),
+              isVoiceTranscript: true,
+            })
+          } else {
+            console.log('[PipecatSync] Skipping duplicate utterance')
+          }
+        }
+        setUserSpeaking(false)
+        finalizeUserUtterance()
+        setVoiceState('processing')
+        userStoppedDebounceRef.current = null
+      }, 300)
     }
 
     // Bot started speaking - reset accumulated utterance
@@ -150,6 +178,11 @@ export function usePipecatSync() {
 
     // Cleanup
     return () => {
+      // Clear any pending debounce timer
+      if (userStoppedDebounceRef.current) {
+        clearTimeout(userStoppedDebounceRef.current)
+        userStoppedDebounceRef.current = null
+      }
       client.off(RTVIEvent.TransportStateChanged, handleTransportState)
       client.off(RTVIEvent.LocalAudioLevel, handleAudioLevel)
       client.off(RTVIEvent.UserStartedSpeaking, handleUserStartedSpeaking)
