@@ -64,8 +64,11 @@ export function usePipecatSync() {
 
     // Listen to local audio level for debugging (only log significant levels)
     let lastLogTime = 0
-    const handleAudioLevel = (level: number) => {
+    const handleAudioLevel = (data: number | { level: number }) => {
       const now = Date.now()
+      // Handle both number and object formats
+      const level = typeof data === 'number' ? data : data?.level
+      if (typeof level !== 'number') return
       // Only log every 500ms to avoid spam, and only if level > threshold
       if (level > 0.01 && now - lastLogTime > 500) {
         console.log('[PipecatSync] Local audio level:', level.toFixed(3))
