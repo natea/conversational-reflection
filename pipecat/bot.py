@@ -80,6 +80,47 @@ from emotive_tts_processor import (
 )
 from mcp_config import MCP_SERVERS
 
+# =============================================================================
+# WORKAROUND: Fix audio mute not working in SmallWebRTCTransport
+# Bug: SmallWebRTCTrack.recv() only checks _enabled for video, not audio
+# This monkey-patch fixes the issue until pipecat is updated
+# See: https://github.com/pipecat-ai/pipecat/issues (report this bug)
+# =============================================================================
+def _patch_smallwebrtc_audio_mute():
+    """Patch SmallWebRTCTrack.recv() to respect _enabled for audio tracks too."""
+    try:
+        from pipecat.transports.smallwebrtc.connection import SmallWebRTCTrack
+        import asyncio
+
+        async def patched_recv(self):
+            """Patched recv that respects _enabled for both audio and video."""
+            self._receiver._enabled = True
+            self._last_recv_time = __import__('time').time()
+
+            # start idle watcher if not already running
+            if not self._idle_task or self._idle_task.done():
+                self._idle_task = asyncio.create_task(self._idle_watcher())
+
+            # FIXED: Check _enabled for BOTH audio and video (original only checked video)
+            if not self._enabled:
+                if self._track.kind == "video":
+                    return None
+                elif self._track.kind == "audio":
+                    # For audio, we need to consume the frame but return silence/None
+                    # to prevent the bot from processing muted audio
+                    await self._track.recv()  # Consume the frame
+                    return None
+
+            return await self._track.recv()
+
+        SmallWebRTCTrack.recv = patched_recv
+        logger.info("✅ Applied SmallWebRTC audio mute fix")
+    except Exception as e:
+        logger.warning(f"Could not apply SmallWebRTC audio mute fix: {e}")
+
+_patch_smallwebrtc_audio_mute()
+# =============================================================================
+
 logger.info("✅ All components loaded successfully!")
 
 load_dotenv(override=True)
