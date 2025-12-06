@@ -15,7 +15,7 @@ based on Ginger's current emotional state from sable-mcp.
 
 Required AI services:
 - Deepgram (Speech-to-Text)
-- OpenAI (LLM)
+- Google AI Studio (LLM)
 - Cartesia (Text-to-Speech with emotion support)
 
 Required MCP servers (Node.js):
@@ -68,7 +68,7 @@ from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.elevenlabs.tts import ElevenLabsTTSService
 from pipecat.services.mcp_service import MCPClient
-from pipecat.services.openai.llm import OpenAILLMService
+from pipecat.services.google.llm import GoogleLLMService
 from pipecat.services.openai.tts import OpenAITTSService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.daily.transport import DailyParams
@@ -543,9 +543,9 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         tts._settings["generation_config"] = new_config
         logger.debug(f"🎭 Updated TTS generation_config: emotion={emotion}, speed={speed}, volume={volume}")
 
-    llm = OpenAILLMService(
-        api_key=os.getenv("OPENAI_API_KEY"),
-        model="gpt-4o",  # Use gpt-4o for better function calling
+    llm = GoogleLLMService(
+        api_key=os.getenv("GOOGLE_API_KEY"),
+        model="gemini-2.0-flash-exp",  # Use Gemini 2.0 Flash for better function calling
     )
 
     # Initialize MCP clients with graceful degradation
