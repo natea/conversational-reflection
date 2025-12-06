@@ -45,3 +45,4 @@ venv
 __pycache__/
 *.pycginger_rp/
 .claude/
+pipecat/logs.txt
