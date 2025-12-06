@@ -1,0 +1,156 @@
+# Multi-stage production Dockerfile for Ginger Voice Bot Backend
+FROM python:3.13-slim as builder
+
+# Set build arguments
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
+COPY pyproject.toml uv.lock ./
+RUN pip install --upgrade pip
+
+# Install pipecat-ai and dependencies
+RUN pip install pipecat-ai
+RUN pip install python-dotenv loguru
+RUN pip install httpx websockets
+RUN pip install fastapi uvicorn[standard]
+
+# Production stage
+FROM python:3.13-slim as production
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH="/app"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Create app user
+RUN useradd --create-home --shell /bin/bash ginger
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY . .
+
+# Install PM2 globally for process management
+RUN npm install -g pm2
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data
+
+# Set ownership
+RUN chown -R ginger:ginger /app
+
+# Copy MCP servers (they'll be mounted at build time)
+RUN mkdir -p /app/mcp-servers
+
+# MCP servers will be mounted as volumes at runtime
+
+# Create startup script
+RUN cat > /app/start.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "🧡 Starting Ginger Voice Bot Backend..."
+
+# Start MCP servers in background (if available)
+cd /app/mcp-servers
+for server in sable-mcp private-journal-mcp; do
+    if [ -d "$server" ]; then
+        echo "Starting $server..."
+        cd $server
+        npm start > /app/logs/${server}.log 2>&1 &
+        echo $! > /tmp/${server}.pid
+        cd ..
+    else
+        echo "MCP server $server not found, skipping..."
+    fi
+done
+
+# Wait a moment for MCP servers to start
+sleep 2
+
+# Start the main bot application with PM2
+echo "Starting Ginger Bot..."
+cd /app
+exec pm2-runtime start bot.py \
+    --name "ginger-bot" \
+    --log-date-format "YYYY-MM-DD HH:mm:ss Z" \
+    --log /app/logs/bot.log \
+    --error /app/logs/bot-error.log
+EOF
+
+RUN chmod +x /app/start.sh
+
+# Create PM2 config file
+RUN cat > /app/ecosystem.config.js << 'EOF'
+module.exports = {
+  apps: [{
+    name: 'ginger-bot',
+    script: 'bot.py',
+    interpreter: '/opt/venv/bin/python',
+    instances: 1,
+    exec_mode: 'fork',
+    watch: false,
+    max_memory_restart: '1G',
+    env: {
+      NODE_ENV: 'production',
+      PORT: 7860,
+      HOST: '0.0.0.0'
+    },
+    error_file: '/app/logs/bot-error.log',
+    out_file: '/app/logs/bot.log',
+    log_file: '/app/logs/bot-combined.log',
+    time: true
+  }]
+};
+EOF
+
+# Expose port
+EXPOSE 7860
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:7860/health || exit 1
+
+# Switch to non-root user
+USER ginger
+
+# Set entrypoint
+ENTRYPOINT ["/app/start.sh"]
+
+# Labels
+LABEL org.opencontainers.image.title="Ginger Voice Bot Backend"
+LABEL org.opencontainers.image.description="Production backend for Ginger Voice Bot with emotional awareness"
+LABEL org.opencontainers.image.vendor="Ginger Voice Bot"
+LABEL org.opencontainers.image.licenses="MIT"

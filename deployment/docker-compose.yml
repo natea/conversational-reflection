@@ -1,0 +1,153 @@
+version: '3.8'
+
+services:
+  # Backend Service - Python Pipecat Application
+  backend:
+    build:
+      context: ../pipecat
+      dockerfile: ../deployment/Dockerfile.backend
+    container_name: ginger-backend
+    restart: unless-stopped
+    environment:
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - CARTESIA_API_KEY=${CARTESIA_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - NODE_ENV=production
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    ports:
+      - "7860:7860"
+    depends_on:
+      - sable-mcp
+      - journal-mcp
+    networks:
+      - ginger-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Sable MCP Server - Emotional Analysis
+  sable-mcp:
+    build:
+      context: ../src/mcp-servers/sable-mcp
+      dockerfile: Dockerfile
+    container_name: ginger-sable-mcp
+    restart: unless-stopped
+    networks:
+      - ginger-network
+    environment:
+      - NODE_ENV=production
+
+  # Private Journal MCP Server - Long-term Memory
+  journal-mcp:
+    build:
+      context: ../src/mcp-servers/private-journal-mcp
+      dockerfile: Dockerfile
+    container_name: ginger-journal-mcp
+    restart: unless-stopped
+    volumes:
+      - journal_data:/app/data
+    networks:
+      - ginger-network
+    environment:
+      - NODE_ENV=production
+
+  # Frontend Service - Next.js Application
+  frontend:
+    build:
+      context: ../ginger_rp
+      dockerfile: ../deployment/Dockerfile.frontend
+    container_name: ginger-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:7860
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - ginger-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: ginger-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites-available:/etc/nginx/sites-available:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - ginger-network
+
+  # Redis for session storage (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: ginger-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - ginger-network
+    command: redis-server --appendonly yes
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ginger-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - ginger-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ginger-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - ginger-network
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+
+networks:
+  ginger-network:
+    driver: bridge
+
+volumes:
+  journal_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:

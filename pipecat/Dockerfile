@@ -14,3 +14,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy the application code
 COPY ./bot.py bot.py
+
+# Set the command to run the bot
+CMD ["uv", "run", "python", "bot.py", "--transport", "webrtc"]
+
+# Add labels for metadata
+LABEL org.opencontainers.image.title="Ginger Voice Bot Backend"
+LABEL org.opencontainers.image.description="Production backend for Ginger Voice Bot powered by Pipecat"
+LABEL org.opencontainers.image.vendor="Ginger Voice Bot"
+LABEL org.opencontainers.image.licenses="MIT"

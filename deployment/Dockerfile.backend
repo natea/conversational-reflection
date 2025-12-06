@@ -1,0 +1,61 @@
+FROM python:3.13-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    build-essential \
+    git \
+    ffmpeg \
+    portaudio19-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv for faster package installation
+RUN pip install uv
+
+# Set work directory
+WORKDIR /app
+
+# Copy requirements and install Python dependencies
+COPY pyproject.toml ./
+RUN uv pip install --system -e .
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data
+
+# Install Node.js (required for MCP servers)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Build MCP servers
+RUN cd /app/src/mcp-servers/sable-mcp \
+    && npm install \
+    && npm run build \
+    && cd /app/src/mcp-servers/private-journal-mcp \
+    && npm install \
+    && npm run build \
+    && cd /app/src/mcp-servers/imessage-mcp \
+    && npm install \
+    && npm run build
+
+# Update mcp_config.py to use container paths
+RUN sed -i "s|PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))|PROJECT_ROOT = '/app'|" /app/mcp_config.py
+
+# Expose ports
+EXPOSE 7860
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:7860/api/status || exit 1
+
+# Run the application
+CMD ["python", "server.py"]

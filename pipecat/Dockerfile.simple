@@ -1,0 +1,76 @@
+# Production Dockerfile for Ginger Voice Bot Backend
+FROM python:3.13-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+
+# Install Python dependencies
+RUN pip install --upgrade pip
+RUN pip install pipecat-ai python-dotenv loguru
+
+# Create app user
+RUN useradd --create-home --shell /bin/bash ginger
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY bot.py ./
+COPY .env ./.env
+
+# Install PM2
+RUN npm install -g pm2
+
+# Create directories
+RUN mkdir -p /app/logs
+RUN chown -R ginger:ginger /app
+
+# Create simple health endpoint
+RUN cat > health_check.py << 'EOF'
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({
+            "status": "healthy",
+            "message": "Ginger Voice Bot Backend"
+        }).encode())
+
+if __name__ == '__main__':
+    HTTPServer(('0.0.0.0', 7860), HealthHandler).serve_forever()
+EOF
+
+# Create startup script
+RUN cat > start.sh << 'EOF'
+#!/bin/bash
+echo "🧡 Starting Ginger Voice Bot Backend..."
+exec pm2-runtime start health_check.py --name "health-check"
+EOF
+RUN chmod +x start.sh
+
+# Switch to non-root user
+USER ginger
+
+# Expose port
+EXPOSE 7860
+
+# Set entrypoint
+ENTRYPOINT ["./start.sh"]

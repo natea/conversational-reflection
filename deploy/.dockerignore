@@ -1,0 +1,53 @@
+# Exclude unnecessary files to keep image small
+
+# Dependencies that will be installed
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Development files
+.git/
+.gitignore
+README.md
+*.md
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Environment files (will be injected at runtime)
+.env
+.env.local
+.env.*.local
+
+# Test files
+tests/
+*.test.js
+*.spec.js
+pytest.ini
+
+# Documentation
+docs/
+
+# Cache directories
+.cache/
+.next/cache/
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+*.swp
+*.swo
+
+# Build artifacts
+build/
+out/
