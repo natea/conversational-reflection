@@ -1,14 +1,16 @@
 #!/bin/bash
 
 # Conversational Reflection - Development Server Script
-# Usage: ./dev.sh [start|stop|restart|status]
+# Usage: ./dev.sh [start|stop|restart|status|setup|logs]
 
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
 BACKEND_DIR="$PROJECT_DIR/backend"
+MCP_DIR="$PROJECT_DIR/src/mcp-servers"
 PID_DIR="$PROJECT_DIR/.pids"
+LOG_DIR="$PROJECT_DIR/logs"
 
 # Colors for output
 RED='\033[0;31m'
@@ -17,8 +19,9 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Create PID directory if it doesn't exist
+# Create directories if they don't exist
 mkdir -p "$PID_DIR"
+mkdir -p "$LOG_DIR"
 
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -50,6 +53,60 @@ check_dependencies() {
     fi
 }
 
+setup_mcp_servers() {
+    log_info "Setting up MCP servers..."
+
+    # Create timestamped log directory for this setup run
+    local TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+    local SETUP_LOG_DIR="$LOG_DIR/setup-$TIMESTAMP"
+    mkdir -p "$SETUP_LOG_DIR"
+    log_info "Setup logs: $SETUP_LOG_DIR"
+
+    # Setup sable-mcp
+    if [ -d "$MCP_DIR/sable-mcp" ]; then
+        log_info "Building sable-mcp..."
+        cd "$MCP_DIR/sable-mcp"
+        {
+            echo "=== npm install ($(date)) ==="
+            npm install
+            echo "=== npm run build ($(date)) ==="
+            npm run build
+        } >> "$SETUP_LOG_DIR/sable-mcp.log" 2>&1 && log_success "sable-mcp built" || log_error "sable-mcp build failed (see $SETUP_LOG_DIR/sable-mcp.log)"
+    fi
+
+    # Setup imessage-mcp
+    if [ -d "$MCP_DIR/imessage-mcp" ]; then
+        log_info "Building imessage-mcp..."
+        cd "$MCP_DIR/imessage-mcp"
+        {
+            echo "=== npm install ($(date)) ==="
+            npm install
+            echo "=== npm run build ($(date)) ==="
+            npm run build
+        } >> "$SETUP_LOG_DIR/imessage-mcp.log" 2>&1 && log_success "imessage-mcp built" || log_error "imessage-mcp build failed (see $SETUP_LOG_DIR/imessage-mcp.log)"
+
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            log_warn "imessage-mcp requires Full Disk Access on macOS"
+            log_info "To enable: System Settings → Privacy & Security → Full Disk Access → Add Terminal"
+        fi
+    fi
+
+    # Setup private-journal-mcp
+    if [ -d "$MCP_DIR/private-journal-mcp" ]; then
+        log_info "Building private-journal-mcp..."
+        cd "$MCP_DIR/private-journal-mcp"
+        {
+            echo "=== npm install ($(date)) ==="
+            npm install
+            echo "=== npm run build ($(date)) ==="
+            npm run build
+        } >> "$SETUP_LOG_DIR/private-journal-mcp.log" 2>&1 && log_success "private-journal-mcp built" || log_error "private-journal-mcp build failed (see $SETUP_LOG_DIR/private-journal-mcp.log)"
+    fi
+
+    cd "$PROJECT_DIR"
+    log_success "MCP server setup complete"
+}
+
 start_backend() {
     log_info "Starting backend (Pipecat voice bot)..."
 
@@ -70,12 +127,19 @@ start_backend() {
         log_warn "Please update backend/.env with your API keys"
     fi
 
+    # Create timestamped log file
+    local TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+    local BACKEND_LOG="$LOG_DIR/backend-$TIMESTAMP.log"
+
     # Start backend with uv
-    uv run bot.py --transport webrtc > "$PID_DIR/backend.log" 2>&1 &
+    nohup uv run bot.py --transport webrtc >> "$BACKEND_LOG" 2>&1 &
     echo $! > "$PID_DIR/backend.pid"
 
+    # Also create symlink to latest log
+    ln -sf "$BACKEND_LOG" "$LOG_DIR/backend-latest.log"
+
     log_success "Backend started (PID: $(cat "$PID_DIR/backend.pid"))"
-    log_info "Backend logs: $PID_DIR/backend.log"
+    log_info "Backend logs: $BACKEND_LOG"
 }
 
 start_frontend() {
@@ -103,12 +167,19 @@ start_frontend() {
         npm install
     fi
 
+    # Create timestamped log file
+    local TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+    local FRONTEND_LOG="$LOG_DIR/frontend-$TIMESTAMP.log"
+
     # Start frontend
-    npm run dev > "$PID_DIR/frontend.log" 2>&1 &
+    nohup npm run dev >> "$FRONTEND_LOG" 2>&1 &
     echo $! > "$PID_DIR/frontend.pid"
 
+    # Also create symlink to latest log
+    ln -sf "$FRONTEND_LOG" "$LOG_DIR/frontend-latest.log"
+
     log_success "Frontend started (PID: $(cat "$PID_DIR/frontend.pid"))"
-    log_info "Frontend logs: $PID_DIR/frontend.log"
+    log_info "Frontend logs: $FRONTEND_LOG"
 }
 
 stop_backend() {
@@ -117,6 +188,8 @@ stop_backend() {
         if kill -0 "$pid" 2>/dev/null; then
             log_info "Stopping backend (PID: $pid)..."
             kill "$pid" 2>/dev/null || true
+            # Also kill any child processes
+            pkill -P "$pid" 2>/dev/null || true
             rm -f "$PID_DIR/backend.pid"
             log_success "Backend stopped"
         else
@@ -176,6 +249,13 @@ show_status() {
         log_warn "Frontend: Not running"
     fi
 
+    # MCP servers status
+    echo ""
+    log_info "MCP Servers (built):"
+    [ -d "$MCP_DIR/sable-mcp/dist" ] && log_success "  sable-mcp" || log_warn "  sable-mcp (not built)"
+    [ -d "$MCP_DIR/imessage-mcp/dist" ] && log_success "  imessage-mcp" || log_warn "  imessage-mcp (not built)"
+    [ -d "$MCP_DIR/private-journal-mcp/dist" ] && log_success "  private-journal-mcp" || log_warn "  private-journal-mcp (not built)"
+
     echo ""
 }
 
@@ -183,23 +263,38 @@ show_logs() {
     local service="$1"
     case "$service" in
         backend)
-            if [ -f "$PID_DIR/backend.log" ]; then
-                tail -f "$PID_DIR/backend.log"
+            if [ -f "$LOG_DIR/backend-latest.log" ]; then
+                tail -f "$LOG_DIR/backend-latest.log"
             else
-                log_error "No backend logs found"
+                log_error "No backend logs found. Start the backend first."
             fi
             ;;
         frontend)
-            if [ -f "$PID_DIR/frontend.log" ]; then
-                tail -f "$PID_DIR/frontend.log"
+            if [ -f "$LOG_DIR/frontend-latest.log" ]; then
+                tail -f "$LOG_DIR/frontend-latest.log"
             else
-                log_error "No frontend logs found"
+                log_error "No frontend logs found. Start the frontend first."
             fi
             ;;
+        all)
+            log_info "Tailing all logs (Ctrl+C to stop)..."
+            tail -f "$LOG_DIR/backend-latest.log" "$LOG_DIR/frontend-latest.log" 2>/dev/null || log_error "No logs found"
+            ;;
         *)
-            log_error "Usage: $0 logs [backend|frontend]"
+            log_error "Usage: $0 logs [backend|frontend|all]"
             ;;
     esac
+}
+
+clean_logs() {
+    log_info "Cleaning old logs..."
+    # Keep only the 10 most recent log files per service
+    cd "$LOG_DIR"
+    ls -t backend-*.log 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
+    ls -t frontend-*.log 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
+    # Clean old setup directories (keep last 5)
+    ls -dt setup-* 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
+    log_success "Old logs cleaned"
 }
 
 case "$1" in
@@ -217,8 +312,11 @@ case "$1" in
         echo "  Frontend: http://localhost:3000"
         echo "  Backend:  ws://localhost:8765"
         echo ""
-        echo "Use './dev.sh logs backend' or './dev.sh logs frontend' to view logs"
-        echo "Use './dev.sh stop' to stop all services"
+        echo "Commands:"
+        echo "  ./dev.sh logs backend   - View backend logs"
+        echo "  ./dev.sh logs frontend  - View frontend logs"
+        echo "  ./dev.sh logs all       - View all logs"
+        echo "  ./dev.sh stop           - Stop all services"
         echo ""
         ;;
     stop)
@@ -237,20 +335,38 @@ case "$1" in
     status)
         show_status
         ;;
+    setup)
+        check_dependencies
+        echo ""
+        echo "=== Setting Up MCP Servers ==="
+        echo ""
+        setup_mcp_servers
+        echo ""
+        ;;
     logs)
         show_logs "$2"
+        ;;
+    clean)
+        clean_logs
         ;;
     *)
         echo "Conversational Reflection - Development Server"
         echo ""
-        echo "Usage: $0 {start|stop|restart|status|logs}"
+        echo "Usage: $0 {start|stop|restart|status|setup|logs|clean}"
         echo ""
         echo "Commands:"
         echo "  start    Start both frontend and backend servers"
         echo "  stop     Stop all running servers"
         echo "  restart  Restart all servers"
         echo "  status   Show running status of all servers"
-        echo "  logs     View logs (usage: $0 logs [backend|frontend])"
+        echo "  setup    Build MCP servers (sable, imessage, private-journal)"
+        echo "  logs     View logs (usage: $0 logs [backend|frontend|all])"
+        echo "  clean    Remove old log files (keeps last 10)"
+        echo ""
+        echo "First time setup:"
+        echo "  1. Copy backend/env.example to backend/.env and add API keys"
+        echo "  2. Run './dev.sh setup' to build MCP servers"
+        echo "  3. Run './dev.sh start' to start all services"
         echo ""
         exit 1
         ;;

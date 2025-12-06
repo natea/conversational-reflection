@@ -44,3 +44,7 @@ venv
 .venv
 __pycache__/
 *.pycginger_rp/
+
+# Logs and PIDs
+.pids/
+logs/
