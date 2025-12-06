@@ -726,9 +726,12 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         observers=[RTVIObserver(rtvi)],
     )
 
-    @transport.event_handler("on_client_connected")
-    async def on_client_connected(_transport, _client):
-        logger.info("Client connected - Ginger preparing greeting")
+    @rtvi.event_handler("on_client_ready")
+    async def on_client_ready(_processor):
+        logger.info("Client ready - signaling bot ready and preparing greeting")
+
+        # CRITICAL: Signal to client that bot is ready (fixes "Waiting..." stuck state)
+        await rtvi.set_bot_ready()
 
         # Calculate time windows for iMessage scan
         one_day_ago = (datetime.now() - timedelta(days=1)).isoformat()
