@@ -2,6 +2,61 @@
 
 An AI companion that analyzes iMessage conversations, develops emotional responses through Damasio's consciousness model, maintains a private journal of reflections, and expresses insights through emotionally-authentic voice synthesis.
 
+## Quick Start
+
+```bash
+# Start both frontend and backend
+./dev.sh start
+
+# Stop both services
+./dev.sh stop
+
+# Restart services
+./dev.sh restart
+
+# Check status
+./dev.sh status
+```
+
+The frontend runs at **http://localhost:3000** and the backend at **ws://localhost:8765**.
+
+## Environment Setup
+
+Before starting, you need API keys for the voice services:
+
+```bash
+# Copy the example environment file
+cp backend/env.example backend/.env
+
+# Edit backend/.env and add your API keys:
+DEEPGRAM_API_KEY=your_deepgram_api_key    # For speech-to-text
+CARTESIA_API_KEY=your_cartesia_api_key    # For text-to-speech
+OPENAI_API_KEY=your_openai_api_key        # For LLM responses
+```
+
+Get your API keys:
+- **Deepgram**: https://console.deepgram.com/ (speech recognition)
+- **Cartesia**: https://play.cartesia.ai/ (voice synthesis)
+- **OpenAI**: https://platform.openai.com/ (language model)
+
+## Project Structure
+
+```
+conversational-reflection/
+├── frontend/          # Next.js web app (Ginger UI)
+│   ├── src/
+│   │   ├── app/       # Next.js pages
+│   │   ├── components/# React components
+│   │   ├── stores/    # Zustand state management
+│   │   └── providers/ # Context providers (Pipecat)
+│   └── package.json
+├── backend/           # Python voice bot (Pipecat)
+│   ├── bot.py         # Main bot with emotive TTS
+│   ├── emotive_tts_processor.py
+│   └── pyproject.toml
+└── dev.sh             # Development startup script
+```
+
 ## Overview
 
 This tool creates a reflective AI experience that can:
@@ -32,18 +87,18 @@ This tool creates a reflective AI experience that can:
 │  │  - Reads iMessage transcripts via imessage-kit                         │ │
 │  │  - Analyzes emotional content via Sable                                │ │
 │  │  - Writes reflections to private-journal-mcp                           │ │
-│  │  - Generates voice output via Maya1                                    │ │
+│  │  - Generates voice output via Cartesia                                  │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
          │                │                │                │
          ▼                ▼                ▼                ▼
 ┌─────────────────┐ ┌───────────────┐ ┌─────────────────┐ ┌──────────────────┐
-│ imessage-mcp    │ │ sable-mcp     │ │ private-journal │ │ maya-tts-mcp     │
-│ (TypeScript)    │ │ (TypeScript)  │ │ -mcp (Node.js)  │ │ (Python/TS)      │
+│ imessage-mcp    │ │ sable-mcp     │ │ private-journal │ │ Pipecat Backend  │
+│ (TypeScript)    │ │ (TypeScript)  │ │ -mcp (Node.js)  │ │ (Python)         │
 │                 │ │               │ │                 │ │                  │
-│ • get_messages  │ │ • analyze     │ │ • process_      │ │ • speak_as       │
-│ • list_chats    │ │ • feel        │ │   thoughts      │ │ • speak_reflect  │
-│ • watch_messages│ │ • status      │ │ • search_       │ │ • preview_voice  │
+│ • get_messages  │ │ • analyze     │ │ • process_      │ │ • Deepgram STT   │
+│ • list_chats    │ │ • feel        │ │   thoughts      │ │ • Cartesia TTS   │
+│ • watch_messages│ │ • status      │ │ • search_       │ │ • WebRTC         │
 │                 │ │ • memories    │ │   journal       │ │                  │
 └─────────────────┘ └───────────────┘ └─────────────────┘ └──────────────────┘
 ```
@@ -55,7 +110,8 @@ This tool creates a reflective AI experience that can:
 - **macOS** (required for iMessage access)
 - **Full Disk Access** permission for your terminal
 - **Node.js** 18+
-- **Python** 3.10+ (for Maya TTS)
+- **Python** 3.13+ (for Pipecat backend)
+- **uv** (Python package manager) - install with `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ### Setup
 
@@ -90,8 +146,7 @@ claude mcp add imessage -- node ./dist/mcp-servers/imessage-mcp/index.js
 # Sable emotional consciousness
 claude mcp add sable -- node ./dist/mcp-servers/sable-mcp/index.js
 
-# Maya TTS (requires Python environment)
-claude mcp add maya-tts -- python ./src/mcp-servers/maya-tts-mcp/server.py
+# Note: Voice synthesis is handled by the Pipecat backend (Deepgram + Cartesia)
 ```
 
 Or add to your Claude MCP config JSON directly:
@@ -145,7 +200,7 @@ const messages = await api.getMessages({ limit: 10 })
 // Analyze emotions in text
 const emotions = api.analyzeEmotions("I'm so frustrated!")
 
-// Process text with emotion tags for Maya TTS
+// Process text with emotion tags for Cartesia TTS
 const tagged = api.processTextWithEmotions("This is amazing!", emotions)
 
 // Manage voice profiles
@@ -160,16 +215,16 @@ api.setVoiceProfile('+1234567890', {
 
 ### Emotion Mapper (`src/lib/emotion-mapper.ts`)
 
-Maps detected emotions to Maya TTS emotion tags:
+Maps detected emotions to Cartesia TTS emotion tags:
 
-| Emotion | Intensity | Maya Tags | Placement |
-|---------|-----------|-----------|-----------|
-| anger | > 0.7 | `<angry>` | Start of sentence |
-| anger | 0.4-0.7 | `<sigh>` | Before key phrase |
-| sadness | > 0.6 | `<cry>` | Near emotional peak |
-| joy | > 0.7 | `<laugh>` | After joyful phrase |
-| fear | > 0.5 | `<gasp>`, `<whisper>` | Start, then whisper |
-| surprise | any | `<gasp>` | Start of sentence |
+| Emotion | Intensity | Cartesia Tags | Placement |
+|---------|-----------|---------------|-----------|
+| anger | > 0.7 | `<emotion:angry>` | Start of sentence |
+| anger | 0.4-0.7 | `<emotion:frustrated>` | Before key phrase |
+| sadness | > 0.6 | `<emotion:sad>` | Near emotional peak |
+| joy | > 0.7 | `<emotion:excited>` | After joyful phrase |
+| fear | > 0.5 | `<emotion:anxious>` | Start of sentence |
+| surprise | any | `<emotion:surprised>` | Start of sentence |
 
 ### Voice Profiles (`src/lib/voice-profiles.ts`)
 
@@ -179,7 +234,7 @@ Manages contact-specific voice configurations:
 interface ContactVoiceProfile {
   contactId: string
   name: string
-  voiceDescription: string      // Maya1 natural language prompt
+  voiceDescription: string      // Cartesia voice description
   voiceGender?: string
   voiceAgeRange?: string        // '20s', '30s', etc.
   voiceAccent?: string          // 'American', 'British', etc.
@@ -207,7 +262,6 @@ npm test
 # Run specific test suites
 npm run test:imessage
 npm run test:sable
-npm run test:maya
 
 # Type checking
 npm run typecheck
@@ -227,26 +281,23 @@ conversational-reflection/
 │   │   │   ├── types.ts         # Unified emotion interfaces
 │   │   │   ├── adapters/
 │   │   │   │   ├── cartesia.ts  # Cartesia Sonic-3 adapter (60+ emotions)
-│   │   │   │   ├── maya.ts      # Maya TTS adapter
 │   │   │   │   └── elevenlabs.ts# ElevenLabs adapter (stub)
 │   │   │   ├── sable-mapper.ts  # Sable → EmotiveVoiceState
 │   │   │   ├── config.ts        # Configuration & voice IDs
 │   │   │   └── index.ts         # EmotiveTTSOrchestrator
-│   │   ├── emotion-mapper.ts    # Emotion to Maya tag mapping
+│   │   ├── emotion-mapper.ts    # Emotion to Cartesia tag mapping
 │   │   ├── voice-profiles.ts    # Contact voice management
 │   │   ├── imessage-client.ts   # iMessage MCP client
 │   │   ├── sable-client.ts      # Sable consciousness client
-│   │   ├── maya-client.ts       # Maya TTS client
 │   │   ├── conversation-analyzer.ts
 │   │   ├── analysis-pipeline.ts
 │   │   └── reflection-orchestrator.ts
 │   ├── mcp-servers/
 │   │   ├── imessage-mcp/        # iMessage MCP server
 │   │   ├── sable-mcp/           # Sable MCP server
-│   │   ├── maya-tts-mcp/        # Maya TTS MCP server
 │   │   └── private-journal-mcp/ # Private journal MCP server
 │   └── types/
-├── pipecat/                     # Pipecat voice bot (Ginger)
+├── backend/                     # Pipecat voice bot (Ginger)
 │   ├── bot.py                   # Main bot with emotive TTS
 │   ├── emotive_tts_processor.py # Pipecat emotion processor
 │   └── mcp_config.py            # MCP server configuration
@@ -265,11 +316,10 @@ conversational-reflection/
 | **macOS** | Required | — |
 | **Full Disk Access** | Required | — |
 | **Node.js** | 18+ | 20+ |
-| **Python** | 3.10+ | 3.11+ |
-| **GPU (local Maya1)** | 8GB VRAM | 16GB+ VRAM |
-| **RAM** | 16GB | 32GB |
+| **Python** | 3.13+ | 3.13+ |
+| **RAM** | 8GB | 16GB |
 
-**No GPU?** Maya1 can be used via cloud API.
+Voice services (Deepgram, Cartesia) are cloud-based - no GPU required.
 
 ## Emotive Voice System
 
@@ -335,7 +385,7 @@ For best emotional expression, use Cartesia voices tagged as "Emotive":
 
 Set via environment variable:
 ```bash
-CARTESIA_VOICE_ID=a0e99841-438c-4a64-b679-ae501e7d6091  # Maya
+CARTESIA_VOICE_ID=a0e99841-438c-4a64-b679-ae501e7d6091
 ```
 
 ## Two-Voice Strategy
@@ -354,10 +404,12 @@ The system uses two distinct voices:
 
 ## Resources
 
+- [Deepgram](https://deepgram.com/) - Speech-to-text API
+- [Cartesia](https://cartesia.ai/) - Emotive text-to-speech API
+- [Pipecat](https://github.com/pipecat-ai/pipecat) - Voice AI framework
 - [imessage-kit](https://github.com/photon-hq/imessage-kit) - iMessage SDK
 - [Sable (Her)](https://github.com/tapania/her) - Damasio consciousness model
 - [private-journal-mcp](https://github.com/obra/private-journal-mcp) - Private journaling
-- [Maya1](https://huggingface.co/maya-research/maya1) - Expressive voice synthesis
 
 ## License
 

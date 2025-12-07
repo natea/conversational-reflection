@@ -1,0 +1,408 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Colors - Light Mode */
+    --background: #FAF8F5;
+    --surface: #F5F1EB;
+    --text-primary: #2D2A26;
+    --text-secondary: #6B6560;
+    --voice-accent: #C25B4A;
+    --damasio-lens: #8B7355;
+    --cbt-lens: #5B8AC2;
+    --act-lens: #5BC2A8;
+    --ifs-lens: #8B5BC2;
+    --stoic-lens: #7A8B73;
+    --border-light: #E8E4DE;
+    --border-medium: #D5CFC7;
+    --hover-surface: #EBE7E0;
+    --active-surface: #E3DED5;
+    --card-background: #FFFFFF;
+    --success: #6B9B6B;
+    --warning: #C2A05B;
+    --error: #C25B5B;
+
+    /* Emotion colors (Damasio primary emotions) */
+    --emotion-fear: #9B59B6;
+    --emotion-anger: #E74C3C;
+    --emotion-joy: #F1C40F;
+    --emotion-sadness: #3498DB;
+    --emotion-disgust: #27AE60;
+    --emotion-surprise: #E67E22;
+    
+    /* Consciousness visualization */
+    --body-energy: #27AE60;
+    --body-stress: #E74C3C;
+    --body-tension: #9B59B6;
+    --body-arousal: #E67E22;
+    --body-valence-positive: #2ECC71;
+    --body-valence-negative: #E74C3C;
+    
+    /* Voice indicator */
+    --voice-contact: var(--voice-accent);
+    --voice-ai: var(--damasio-lens);
+    
+    /* Memory salience */
+    --salience-high: #F39C12;
+    --salience-medium: #95A5A6;
+    --salience-low: #BDC3C7;
+
+    /* Spacing System */
+    --space-1: 0.25rem;   /* 4px */
+    --space-2: 0.5rem;    /* 8px */
+    --space-3: 0.75rem;   /* 12px */
+    --space-4: 1rem;      /* 16px */
+    --space-6: 1.5rem;    /* 24px */
+    --space-8: 2rem;      /* 32px */
+    --space-12: 3rem;     /* 48px */
+    --space-16: 4rem;     /* 64px */
+
+    /* Typography Scale */
+    --text-xs: 0.75rem;   /* 12px */
+    --text-sm: 0.875rem;  /* 14px */
+    --text-base: 1rem;    /* 16px */
+    --text-lg: 1.125rem;  /* 18px */
+    --text-xl: 1.25rem;   /* 20px */
+    --text-2xl: 1.5rem;   /* 24px */
+    --text-3xl: 1.875rem; /* 30px */
+  }
+
+  html {
+    font-family: var(--font-dm-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+  }
+
+  body {
+    min-height: 100vh;
+    overflow: hidden;
+  }
+}
+
+html.dark {
+  /* Colors - Dark Mode (Deep, cozy dark) */
+  --background: #0F0E0D;
+  --surface: #1A1816;
+  --text-primary: #F5F2ED;
+  --text-secondary: #8A847D;
+  --voice-accent: #E07A69;
+  --damasio-lens: #C9A882;
+  --cbt-lens: #7DA6D6;
+  --act-lens: #7DD6BC;
+  --ifs-lens: #B08AD6;
+  --stoic-lens: #9BB893;
+  --border-light: #2A2724;
+  --border-medium: #3D3935;
+  --hover-surface: #242220;
+  --active-surface: #2E2B28;
+  --card-background: #1F1D1B;
+  --success: #85B885;
+  --warning: #D6B46F;
+  --error: #D66F6F;
+
+  /* Emotion colors (adjusted for dark mode) */
+  --emotion-fear: #B57EDC;
+  --emotion-anger: #F27868;
+  --emotion-joy: #F4D03F;
+  --emotion-sadness: #5DADE2;
+  --emotion-disgust: #52C97A;
+  --emotion-surprise: #F39C44;
+  
+  /* Consciousness visualization (adjusted) */
+  --body-energy: #52C97A;
+  --body-stress: #F27868;
+  --body-tension: #B57EDC;
+  --body-arousal: #F39C44;
+  --body-valence-positive: #58D68D;
+  --body-valence-negative: #F27868;
+  
+  /* Memory salience (adjusted) */
+  --salience-high: #F5B041;
+  --salience-medium: #AAB7B8;
+  --salience-low: #808B96;
+}
+
+@layer components {
+  /* Scrollbar styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--border-medium);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary);
+  }
+
+  /* Voice waveform bars */
+  .waveform-bar {
+    @apply w-1 bg-voice-accent rounded-full;
+  }
+
+  /* Lens badge */
+  .lens-badge {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .lens-badge--damasio {
+    @apply bg-damasio-lens/10 text-damasio-lens;
+  }
+
+  .lens-badge--cbt {
+    @apply bg-cbt-lens/10 text-cbt-lens;
+  }
+
+  .lens-badge--act {
+    @apply bg-act-lens/10 text-act-lens;
+  }
+
+  .lens-badge--ifs {
+    @apply bg-ifs-lens/10 text-ifs-lens;
+  }
+
+  .lens-badge--stoic {
+    @apply bg-stoic-lens/10 text-stoic-lens;
+  }
+
+  /* Message bubble styling */
+  .message-bubble {
+    @apply rounded-2xl px-4 py-3;
+  }
+
+  .message-bubble--user {
+    @apply bg-voice-accent text-white rounded-br-sm;
+  }
+
+  .message-bubble--ai {
+    @apply bg-transparent;
+  }
+
+  /* Panel transitions */
+  .panel-transition {
+    @apply transition-all duration-panel ease-in-out;
+  }
+
+  /* Highlighted terms */
+  .term-highlight {
+    @apply underline decoration-dotted decoration-text-secondary underline-offset-2 cursor-help;
+  }
+
+  /* Mode card */
+  .mode-card {
+    @apply flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-surface
+           border border-border-light cursor-pointer transition-all duration-200
+           hover:border-border-medium hover:shadow-card;
+  }
+
+  .mode-card--active {
+    @apply border-text-primary bg-hover-surface;
+  }
+
+  /* Source item */
+  .source-item {
+    @apply flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200
+           hover:bg-hover-surface hover:-translate-y-0.5;
+  }
+
+  .source-item--selected {
+    @apply bg-active-surface;
+  }
+
+  /* Artifact card */
+  .artifact-card {
+    @apply p-4 rounded-xl bg-surface border border-border-light
+           cursor-pointer transition-all duration-200 hover:shadow-card hover:-translate-y-0.5;
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    @apply px-6 py-2.5 rounded-lg font-medium bg-voice-accent text-white
+           shadow-sm hover:bg-voice-accent/90 hover:shadow-md
+           transition-all duration-200 ease-out;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-2.5 rounded-lg font-medium border border-border-medium
+           text-text-primary hover:bg-hover-surface hover:border-text-primary
+           transition-all duration-200 ease-out;
+  }
+
+  .btn-ghost {
+    @apply px-6 py-2.5 rounded-lg font-medium text-text-secondary
+           hover:text-text-primary hover:bg-hover-surface
+           transition-all duration-200 ease-out;
+  }
+
+  /* Input Styles */
+  input[type="text"],
+  input[type="email"],
+  textarea {
+    @apply border-[1.5px] border-border-light bg-surface text-text-primary
+           focus:outline-none focus:ring-2 focus:ring-voice-accent focus:border-voice-accent
+           transition-all duration-200
+           placeholder:text-text-secondary placeholder:italic;
+  }
+
+  /* Card Styles */
+  .card {
+    @apply rounded-xl border border-border-light p-6
+           transition-all duration-200 hover:shadow-card hover:-translate-y-0.5;
+    background-color: var(--card-background);
+  }
+
+  /* Emotion Badge */
+  .emotion-badge {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .emotion-badge--fear {
+    background-color: rgba(155, 89, 182, 0.1);
+    color: var(--emotion-fear);
+  }
+
+  .emotion-badge--anger {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--emotion-anger);
+  }
+
+  .emotion-badge--joy {
+    background-color: rgba(241, 196, 15, 0.1);
+    color: var(--emotion-joy);
+  }
+
+  .emotion-badge--sadness {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--emotion-sadness);
+  }
+
+  .emotion-badge--disgust {
+    background-color: rgba(39, 174, 96, 0.1);
+    color: var(--emotion-disgust);
+  }
+
+  .emotion-badge--surprise {
+    background-color: rgba(230, 126, 34, 0.1);
+    color: var(--emotion-surprise);
+  }
+
+  /* Memory Card with Salience-based styling */
+  .memory-card {
+    @apply rounded-xl border p-4 transition-all duration-200;
+  }
+
+  .memory-card--high-salience {
+    border-color: var(--salience-high);
+    background-color: rgba(243, 156, 18, 0.05);
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.15);
+  }
+
+  .memory-card--medium-salience {
+    @apply border-border-light bg-surface;
+  }
+
+  .memory-card--low-salience {
+    @apply border-border-light bg-surface opacity-70;
+  }
+
+  /* Consciousness Meter */
+  .consciousness-meter {
+    @apply relative h-2 bg-border-light rounded-full overflow-hidden;
+  }
+
+  .consciousness-meter-fill {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+  }
+
+  /* Voice Waveform */
+  .voice-waveform {
+    @apply flex items-center gap-1 h-8;
+  }
+
+  .voice-waveform-bar {
+    @apply w-1 bg-voice-accent rounded-full transition-all duration-75;
+  }
+
+  /* Somatic Pulse Animation */
+  .somatic-pulse {
+    animation: somatic-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes somatic-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+  }
+
+  /* Body Map Highlight */
+  .body-part-active {
+    @apply transition-all duration-500;
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+
+  /* Emotion Intensity Bar */
+  .emotion-intensity {
+    @apply h-1 rounded-full transition-all duration-300;
+  }
+
+  /* Contact Voice Indicator */
+  .voice-indicator {
+    @apply inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium;
+  }
+
+  .voice-indicator--contact {
+    @apply bg-voice-contact/10 text-voice-contact;
+  }
+
+  .voice-indicator--ai {
+    @apply bg-voice-ai/10 text-voice-ai;
+  }
+
+  /* Relationship Type Badge */
+  .relationship-badge {
+    @apply px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  .relationship-badge--friend {
+    @apply bg-act-lens/10 text-act-lens;
+  }
+
+  .relationship-badge--family {
+    @apply bg-ifs-lens/10 text-ifs-lens;
+  }
+
+  .relationship-badge--colleague {
+    @apply bg-cbt-lens/10 text-cbt-lens;
+  }
+
+  .relationship-badge--romantic {
+    @apply bg-voice-accent/10 text-voice-accent;
+  }
+
+  .relationship-badge--other {
+    @apply bg-text-secondary/10 text-text-secondary;
+  }
+}
+
+@layer utilities {
+  /* Voice listening animation */
+  .voice-listening .waveform-bar:nth-child(1) { animation-delay: 0ms; }
+  .voice-listening .waveform-bar:nth-child(2) { animation-delay: 100ms; }
+  .voice-listening .waveform-bar:nth-child(3) { animation-delay: 200ms; }
+  .voice-listening .waveform-bar:nth-child(4) { animation-delay: 150ms; }
+  .voice-listening .waveform-bar:nth-child(5) { animation-delay: 250ms; }
+  .voice-listening .waveform-bar:nth-child(6) { animation-delay: 50ms; }
+}
