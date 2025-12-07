@@ -11,7 +11,7 @@
 ### 1. Start the Pipecat Backend
 
 ```bash
-cd ../pipecat
+cd backend
 uv run bot.py --transport webrtc
 ```
 
@@ -58,15 +58,17 @@ The frontend will start on http://localhost:3000
 
 ### No audio from Ginger
 - Check browser audio permissions in site settings
-- Verify Cartesia API key is set in `pipecat/.env`
+- Verify Cartesia, Deepgram and OpenAI keys are set in `backend/.env`
 - Check Pipecat backend logs for TTS errors
 - Ensure speaker volume is up
 
 ### Microphone not detected
 - Grant microphone permission in browser settings
 - Check system audio settings
+- Select the correct input source in the audio select gear icon 
 - Try a different browser (Chrome recommended)
 - Verify no other app is using the microphone
+
 
 ### Connection drops frequently
 - Check network stability
@@ -76,20 +78,20 @@ The frontend will start on http://localhost:3000
 
 ## Environment Configuration
 
-Create a `.env.local` file in the `ginger_rp` directory:
+Create a `.env.local` file in the `frontend` directory:
 
 ```bash
 # For local development (default)
 PIPECAT_WEBRTC_URL=http://localhost:7860/offer
 
 # For production
-# PIPECAT_WEBRTC_URL=https://your-pipecat-backend.com/offer
+PIPECAT_WEBRTC_URL=https://your-pipecat-backend.com/offer
 ```
 
 ## Architecture
 
 ```
-Browser (ginger_rp)
+Browser (frontend)
     ↓ WebRTC via SmallWebRTCTransport
 /api/offer (Next.js proxy)
     ↓ HTTP POST
