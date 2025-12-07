@@ -28,3 +28,4 @@ hive-mind-prompt-*.txt
 __pycache__/
 *.pyc
 .pids/
+uv.lock

@@ -95,7 +95,8 @@ export const RoleplayCustomization: FC<RoleplayCustomizationProps> = ({ onStart,
 
   const canProceedStep1 = selectedPartner !== null || customPartner.trim().length > 0
   const canProceedStep2 = selectedSkill !== null && scenario.trim().length > 0
-  const canProceedStep3 = goals.some(g => g.trim().length > 0)
+  // Goals are optional - handleStart provides a default if none are set
+  const canProceedStep3 = true
 
   const recommendedSkills = selectedPartner 
     ? getRecommendedSkills(selectedPartner.relationshipType)
