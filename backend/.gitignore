@@ -27,3 +27,4 @@ claude-flow
 hive-mind-prompt-*.txt
 __pycache__/
 *.pyc
+.pids/

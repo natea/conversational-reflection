@@ -385,7 +385,7 @@ For best emotional expression, use Cartesia voices tagged as "Emotive":
 
 Set via environment variable:
 ```bash
-CARTESIA_VOICE_ID=a0e99841-438c-4a64-b679-ae501e7d6091  # Maya
+CARTESIA_VOICE_ID=a0e99841-438c-4a64-b679-ae501e7d6091
 ```
 
 ## Two-Voice Strategy
