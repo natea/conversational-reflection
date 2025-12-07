@@ -1,0 +1,323 @@
+{
+  "scenario_id": "5_scapegoating",
+  "title": "iMessage History: The Scapegoat & Family Coalition",
+  "description": "Text messages showing entrenched scapegoating pattern and family coalition against protagonist",
+  "participants": {
+    "protagonist": "You",
+    "mom": "Mom",
+    "sister": "Kate (golden child sister)",
+    "brother": "Tom (neutral brother)"
+  },
+  "message_history": [
+    {
+      "timestamp": "2024-11-10T15:30:00Z",
+      "sender": "You",
+      "recipient": "Sister Kate",
+      "message": "Hey Kate, just wanted to give you a heads up that I can't make Thanksgiving this year. Work scheduled me for a project deadline that week."
+    },
+    {
+      "timestamp": "2024-11-10T15:45:00Z",
+      "sender": "Sister Kate",
+      "recipient": "You",
+      "message": "Of course you're bailing. Why am I not surprised?"
+    },
+    {
+      "timestamp": "2024-11-10T15:47:00Z",
+      "sender": "You",
+      "recipient": "Sister Kate",
+      "message": "I'm not bailing, I have a work obligation. I didn't choose this timing."
+    },
+    {
+      "timestamp": "2024-11-10T15:50:00Z",
+      "sender": "Sister Kate",
+      "recipient": "You",
+      "message": "You always have an excuse. Family is never a priority for you."
+    },
+    {
+      "timestamp": "2024-11-10T15:52:00Z",
+      "sender": "You",
+      "recipient": "Sister Kate",
+      "message": "That's not fair. I've been to every family event for the past 2 years. You missed Mom's birthday party last month and no one said anything."
+    },
+    {
+      "timestamp": "2024-11-10T15:55:00Z",
+      "sender": "Sister Kate",
+      "recipient": "You",
+      "message": "I had a valid reason. That's different."
+    },
+    {
+      "timestamp": "2024-11-10T15:57:00Z",
+      "sender": "You",
+      "recipient": "Sister Kate",
+      "message": "How is it different? We both have work obligations."
+    },
+    {
+      "timestamp": "2024-11-10T16:00:00Z",
+      "sender": "Sister Kate",
+      "recipient": "You",
+      "message": "Because YOU have a pattern of letting this family down. Everyone knows it."
+    },
+    {
+      "timestamp": "2024-11-10T16:15:00Z",
+      "sender": "Sister Kate",
+      "recipient": "Mom",
+      "message": "Mom, you're not going to believe this. [You] is bailing on Thanksgiving. Again."
+    },
+    {
+      "timestamp": "2024-11-10T16:20:00Z",
+      "sender": "Mom",
+      "recipient": "Sister Kate",
+      "message": "Are you serious? After last year?"
+    },
+    {
+      "timestamp": "2024-11-10T16:22:00Z",
+      "sender": "Sister Kate",
+      "recipient": "Mom",
+      "message": "Dead serious. Some 'work thing'. I'm so tired of their excuses."
+    },
+    {
+      "timestamp": "2024-11-10T16:25:00Z",
+      "sender": "Mom",
+      "recipient": "Sister Kate",
+      "message": "I'm so disappointed. This is typical behavior."
+    },
+    {
+      "timestamp": "2024-11-10T17:00:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Kate told me you're not coming to Thanksgiving. I'm very hurt by this."
+    },
+    {
+      "timestamp": "2024-11-10T17:05:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, I have a mandatory work deadline. I tried to get out of it but couldn't. I'm sorry."
+    },
+    {
+      "timestamp": "2024-11-10T17:10:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "There's always something with you. Your sister manages to make time for family."
+    },
+    {
+      "timestamp": "2024-11-10T17:12:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Kate missed your birthday party last month and you said that was fine."
+    },
+    {
+      "timestamp": "2024-11-10T17:15:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "That was completely different. She had a medical issue. You're choosing work over family."
+    },
+    {
+      "timestamp": "2024-11-10T17:17:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "I'm not CHOOSING anything. I have an obligation I can't get out of. Why is it okay when she misses something but not me?"
+    },
+    {
+      "timestamp": "2024-11-10T17:20:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Because she doesn't have a PATTERN of this behavior. You do. Everyone in this family sees it."
+    },
+    {
+      "timestamp": "2024-11-15T12:30:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, I've been thinking about what you said. Can we talk about this 'pattern' you mentioned? I genuinely don't understand what you mean."
+    },
+    {
+      "timestamp": "2024-11-15T13:00:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "There's nothing to discuss. You know what you've done over the years."
+    },
+    {
+      "timestamp": "2024-11-15T13:05:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "But I don't know. Can you give me specific examples? I want to understand."
+    },
+    {
+      "timestamp": "2024-11-15T13:10:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "You've always been difficult. Since you were young. Your father and I have tried our best but you've always pushed back."
+    },
+    {
+      "timestamp": "2024-11-15T13:15:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "I'm asking for specific things I've done. What have I pushed back on?"
+    },
+    {
+      "timestamp": "2024-11-15T13:20:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Your sister and I were just talking about how you make everything about you. Even now, you're doing it."
+    },
+    {
+      "timestamp": "2024-11-15T13:22:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "You and Kate were talking about me? What did you say?"
+    },
+    {
+      "timestamp": "2024-11-15T13:25:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "We both agree that you've been the source of a lot of family tension over the years."
+    },
+    {
+      "timestamp": "2024-11-15T13:30:00Z",
+      "sender": "You",
+      "recipient": "Brother Tom",
+      "message": "Tom, has Mom talked to you about me lately?"
+    },
+    {
+      "timestamp": "2024-11-15T14:00:00Z",
+      "sender": "Brother Tom",
+      "recipient": "You",
+      "message": "Yeah, she mentioned the Thanksgiving thing. Sounds complicated."
+    },
+    {
+      "timestamp": "2024-11-15T14:02:00Z",
+      "sender": "You",
+      "recipient": "Brother Tom",
+      "message": "Did she say anything else? Like that I'm the 'source of family tension'?"
+    },
+    {
+      "timestamp": "2024-11-15T14:10:00Z",
+      "sender": "Brother Tom",
+      "recipient": "You",
+      "message": "Look, I try to stay out of this stuff. But yeah, Mom and Kate think you're... I don't know, more difficult than the rest of us."
+    },
+    {
+      "timestamp": "2024-11-15T14:12:00Z",
+      "sender": "You",
+      "recipient": "Brother Tom",
+      "message": "What do YOU think? Do you think I'm the problem?"
+    },
+    {
+      "timestamp": "2024-11-15T14:20:00Z",
+      "sender": "Brother Tom",
+      "recipient": "You",
+      "message": "Honestly? I think you ask too many questions. Sometimes it's better to just let things go. That's what I do."
+    },
+    {
+      "timestamp": "2024-11-15T14:25:00Z",
+      "sender": "You",
+      "recipient": "Brother Tom",
+      "message": "But do you think I'M the reason for family problems? Am I really that bad?"
+    },
+    {
+      "timestamp": "2024-11-15T14:30:00Z",
+      "sender": "Brother Tom",
+      "recipient": "You",
+      "message": "I don't think you're bad. But you do kind of rock the boat a lot. Mom and Kate wouldn't say this stuff if there wasn't some truth to it."
+    },
+    {
+      "timestamp": "2024-11-20T16:00:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, I've been feeling really hurt by what you and Kate have been saying about me. Can we please talk about this?"
+    },
+    {
+      "timestamp": "2024-11-20T16:30:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "I'm not going to apologize for being honest. You've caused problems in this family for years."
+    },
+    {
+      "timestamp": "2024-11-20T16:32:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "What problems? Please give me ONE specific example."
+    },
+    {
+      "timestamp": "2024-11-20T16:35:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "The fact that you're even asking proves my point. You don't see how your behavior affects others."
+    },
+    {
+      "timestamp": "2024-11-20T16:37:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "How can I change if no one will tell me what I'm doing wrong?"
+    },
+    {
+      "timestamp": "2024-11-20T16:40:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Maybe you can't change. Maybe this is just who you are."
+    },
+    {
+      "timestamp": "2024-11-20T16:45:00Z",
+      "sender": "Sister Kate",
+      "recipient": "You",
+      "message": "Mom told me you're harassing her about this. Can you just leave her alone?"
+    },
+    {
+      "timestamp": "2024-11-20T16:47:00Z",
+      "sender": "You",
+      "recipient": "Sister Kate",
+      "message": "I'm not harassing anyone. I'm trying to understand why everyone thinks I'm the problem."
+    },
+    {
+      "timestamp": "2024-11-20T16:50:00Z",
+      "sender": "Sister Kate",
+      "recipient": "You",
+      "message": "This is EXACTLY what we're talking about. You're exhausting. You make everything so difficult."
+    },
+    {
+      "timestamp": "2024-11-20T16:52:00Z",
+      "sender": "You",
+      "recipient": "Sister Kate",
+      "message": "Kate, I genuinely don't understand. What am I doing that's so wrong?"
+    },
+    {
+      "timestamp": "2024-11-20T16:55:00Z",
+      "sender": "Sister Kate",
+      "recipient": "You",
+      "message": "You're doing it RIGHT NOW. Making this all about you. Mom is upset, and instead of apologizing, you're demanding explanations."
+    },
+    {
+      "timestamp": "2024-11-20T17:00:00Z",
+      "sender": "You",
+      "recipient": "Sister Kate",
+      "message": "I just want to understand what I'm apologizing FOR."
+    },
+    {
+      "timestamp": "2024-11-20T17:05:00Z",
+      "sender": "Sister Kate",
+      "recipient": "You",
+      "message": "The fact that you don't already know is the problem. Mom and I are done with this conversation."
+    },
+    {
+      "timestamp": "2024-11-20T18:30:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, I really need to talk to you about all of this. Can I call you? Please?"
+    },
+    {
+      "timestamp": "2024-11-20T19:00:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Fine. But I don't know what you expect to accomplish. Your father and I have made peace with who you are."
+    }
+  ],
+  "context_notes": {
+    "scapegoat_pattern": "Protagonist held to different standard than sister → Any questioning labeled as 'difficult' → Family coalition agrees protagonist is 'the problem'",
+    "circular_logic": "Protagonist can't get specific examples of bad behavior → Asking for examples is framed as proof of bad behavior",
+    "family_narrative": "'You've always been difficult', 'That's just who you are', 'Everyone sees it'",
+    "coalition": "Mom and Kate explicitly discuss protagonist negatively → Brother passively agrees with family narrative",
+    "protagonist_state": "Desperate to understand what they're doing wrong → Beginning to internalize shame → Questioning own reality",
+    "emotional_exhaustion": "Repeatedly asking for clarity → Being told asking itself is the problem",
+    "triggering_realization": "The family has 'made peace with who you are' = They've decided protagonist is permanently the problem"
+  },
+  "roleplay_entry_point": "Phone call with Mom where protagonist needs to navigate between seeking understanding and accepting this dynamic may never change."
+}

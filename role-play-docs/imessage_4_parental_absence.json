@@ -1,0 +1,263 @@
+{
+  "scenario_id": "4_parental_absence",
+  "title": "iMessage History: Parental Absence & Emotional Neglect",
+  "description": "Text messages showing pattern of emotional unavailability and dismissiveness from parent",
+  "participants": {
+    "protagonist": "You (30 years old, living alone)",
+    "dad": "Dad",
+    "mom": "Mom",
+    "sister1": "Emma (older sister)",
+    "sister2": "Rachel (younger sister)"
+  },
+  "message_history": [
+    {
+      "timestamp": "2024-10-15T09:00:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Hey Dad! Hope you had a good week. How's work going?"
+    },
+    {
+      "timestamp": "2024-10-18T19:30:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Dad? Just checking in. Haven't heard from you in a while."
+    },
+    {
+      "timestamp": "2024-10-22T14:20:00Z",
+      "sender": "Dad",
+      "recipient": "Family Group Chat",
+      "message": "Got the promotion. Starts next month."
+    },
+    {
+      "timestamp": "2024-10-22T14:22:00Z",
+      "sender": "Emma (sister)",
+      "recipient": "Family Group Chat",
+      "message": "Congrats Dad!! 🎉"
+    },
+    {
+      "timestamp": "2024-10-22T14:23:00Z",
+      "sender": "You",
+      "recipient": "Family Group Chat",
+      "message": "That's amazing Dad! Want to grab lunch to celebrate?"
+    },
+    {
+      "timestamp": "2024-10-22T14:25:00Z",
+      "sender": "Dad",
+      "recipient": "Family Group Chat",
+      "message": "Swamped with transition meetings. Maybe later."
+    },
+    {
+      "timestamp": "2024-11-01T11:00:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Happy November Dad! Want to do our usual coffee catch-up this month?"
+    },
+    {
+      "timestamp": "2024-11-05T08:30:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Hey Mom, has Dad mentioned if he wants to meet up? I texted him but haven't heard back."
+    },
+    {
+      "timestamp": "2024-11-05T09:15:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "You know how he is honey. He's busy with the new position."
+    },
+    {
+      "timestamp": "2024-11-05T09:20:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "I know, but we used to have coffee once a month. It's been 3 months."
+    },
+    {
+      "timestamp": "2024-11-05T09:25:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "He shows his love by working hard for this family. You should appreciate that."
+    },
+    {
+      "timestamp": "2024-11-10T16:45:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Dad, I really would love to see you. Even just 30 minutes. I miss talking to you."
+    },
+    {
+      "timestamp": "2024-11-12T20:00:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "Busy season at work. We'll catch up soon."
+    },
+    {
+      "timestamp": "2024-11-15T10:30:00Z",
+      "sender": "Emma (sister)",
+      "recipient": "Family Group Chat",
+      "message": "Dad took me to lunch yesterday! Thanks for the career advice Dad ❤️"
+    },
+    {
+      "timestamp": "2024-11-15T10:45:00Z",
+      "sender": "You",
+      "recipient": "Emma (sister)",
+      "message": "Hey, I didn't know you were seeing Dad. That's nice!"
+    },
+    {
+      "timestamp": "2024-11-15T11:00:00Z",
+      "sender": "Emma (sister)",
+      "recipient": "You",
+      "message": "Yeah, he reached out because I had questions about a job transition."
+    },
+    {
+      "timestamp": "2024-11-15T11:05:00Z",
+      "sender": "You",
+      "recipient": "Emma (sister)",
+      "message": "That's great. I've been trying to get coffee with him for months 😅"
+    },
+    {
+      "timestamp": "2024-11-15T11:10:00Z",
+      "sender": "Emma (sister)",
+      "recipient": "You",
+      "message": "You know Dad. He's more comfortable with 'purpose-driven' conversations."
+    },
+    {
+      "timestamp": "2024-11-20T19:00:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Dad, can we please talk? I've been feeling really disconnected from you and it hurts. I just want to know how you're doing."
+    },
+    {
+      "timestamp": "2024-11-22T21:30:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "I'm here to ensure this family is prosperous, not to cater to you."
+    },
+    {
+      "timestamp": "2024-11-22T21:35:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "I'm not asking you to cater to me. I'm asking for basic connection. A phone call once in a while."
+    },
+    {
+      "timestamp": "2024-11-22T21:40:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "That's just not how I show love. I show love through providing. You should understand that by now."
+    },
+    {
+      "timestamp": "2024-11-22T21:42:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "You had time to have lunch with Emma but you don't have 30 minutes for me?"
+    },
+    {
+      "timestamp": "2024-11-22T21:45:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "Emma needed career advice. That's different. That was productive."
+    },
+    {
+      "timestamp": "2024-11-22T21:47:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "And just talking to me isn't productive? I'm your kid too."
+    },
+    {
+      "timestamp": "2024-11-22T21:50:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "You're being too sensitive. Real men don't need constant check-ins."
+    },
+    {
+      "timestamp": "2024-11-22T21:52:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "I'm not asking for constant check-ins. I'm asking for SOME engagement. I live alone and it would mean something if you cared how I'm doing."
+    },
+    {
+      "timestamp": "2024-11-22T21:55:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "This conversation is over. You're being unreasonable."
+    },
+    {
+      "timestamp": "2024-11-22T22:10:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, what Dad just said to me really hurt. Can we talk about this?"
+    },
+    {
+      "timestamp": "2024-11-22T22:25:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Honey, that's just how your father is. You need to accept his love language."
+    },
+    {
+      "timestamp": "2024-11-22T22:27:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "His love language is absence? That doesn't make sense."
+    },
+    {
+      "timestamp": "2024-11-22T22:30:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "You're being ungrateful. He works so hard to provide for this family."
+    },
+    {
+      "timestamp": "2024-11-22T22:35:00Z",
+      "sender": "You",
+      "recipient": "Rachel (sister)",
+      "message": "Rachel, do you ever feel like Dad is emotionally unavailable?"
+    },
+    {
+      "timestamp": "2024-11-22T22:50:00Z",
+      "sender": "Rachel (sister)",
+      "recipient": "You",
+      "message": "I mean yeah, but that's just how dads are. I don't take it personally."
+    },
+    {
+      "timestamp": "2024-11-22T22:52:00Z",
+      "sender": "You",
+      "recipient": "Rachel (sister)",
+      "message": "But doesn't it bother you? He sees Emma but won't even text me back for months."
+    },
+    {
+      "timestamp": "2024-11-22T22:55:00Z",
+      "sender": "Rachel (sister)",
+      "recipient": "You",
+      "message": "Emma needed something specific. Dad's better with tasks than feelings. Just accept him as he is."
+    },
+    {
+      "timestamp": "2024-11-22T23:00:00Z",
+      "sender": "You",
+      "recipient": "Rachel (sister)",
+      "message": "So I'm supposed to just accept that my need for connection with my parent is too much?"
+    },
+    {
+      "timestamp": "2024-11-22T23:05:00Z",
+      "sender": "Rachel (sister)",
+      "recipient": "You",
+      "message": "I'm not saying it's too much. I'm saying he's not going to change. You're just hurting yourself by expecting something different."
+    },
+    {
+      "timestamp": "2024-11-22T23:20:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Dad, what you said really hurt me. Can we please talk about it? I need you to understand why."
+    },
+    {
+      "timestamp": "2024-11-23T08:00:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "If you want to talk, call me. But I don't have much to say beyond what I already told you."
+    }
+  ],
+  "context_notes": {
+    "pattern_established": "Dad consistently unavailable → Makes time for sisters when they 'need' something → Frames protagonist's need for connection as weakness",
+    "emotional_messaging": "'Real men don't need check-ins', 'I provide, that's love', 'You're too sensitive'",
+    "family_normalization": "Mom and sisters frame protagonist as expecting too much, normalize dad's absence",
+    "protagonist_internalization": "Beginning to question if their need for basic parental engagement is pathological",
+    "triggering_statement": "'I'm here to ensure this family is prosperous, not to cater to you'",
+    "current_state": "Dad agreed to phone call but made it clear he stands by his position"
+  },
+  "roleplay_entry_point": "Phone call with Dad where protagonist needs to express hurt without accepting dismissal, while managing self-doubt about whether their need is legitimate."
+}

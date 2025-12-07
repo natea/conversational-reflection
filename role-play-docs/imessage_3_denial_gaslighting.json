@@ -1,0 +1,239 @@
+{
+  "scenario_id": "3_denial_gaslighting",
+  "title": "iMessage History: Denial & Gaslighting",
+  "description": "Text messages showing family denial of obvious conflict and blaming the truth-teller",
+  "participants": {
+    "protagonist": "You",
+    "dad": "Dad",
+    "sister": "Jess (sister)",
+    "mom": "Mom"
+  },
+  "message_history": [
+    {
+      "timestamp": "2024-11-25T18:45:00Z",
+      "context": "Family dinner at parents' house",
+      "sender": "Sister Jess",
+      "recipient": "Family Group Chat",
+      "message": "Thanks for dinner Mom! See everyone next week 😊"
+    },
+    {
+      "timestamp": "2024-11-25T19:30:00Z",
+      "sender": "You",
+      "recipient": "Friend Mike",
+      "message": "Dinner was so awkward. Dad completely dismissed Jess when she talked about her graphic design work. Said 'that's cute' like she was a kid."
+    },
+    {
+      "timestamp": "2024-11-25T19:32:00Z",
+      "sender": "Friend Mike",
+      "recipient": "You",
+      "message": "Yikes. How'd she react?"
+    },
+    {
+      "timestamp": "2024-11-25T19:35:00Z",
+      "sender": "You",
+      "recipient": "Friend Mike",
+      "message": "She snapped at him. Called him condescending. He shut down completely, left the table, and was crying in the bedroom. Then everyone just... pretended nothing happened."
+    },
+    {
+      "timestamp": "2024-11-26T10:15:00Z",
+      "sender": "You",
+      "recipient": "Sister Jess",
+      "message": "Hey, you okay? Last night got pretty tense."
+    },
+    {
+      "timestamp": "2024-11-26T10:45:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "What do you mean?"
+    },
+    {
+      "timestamp": "2024-11-26T10:47:00Z",
+      "sender": "You",
+      "recipient": "Sister Jess",
+      "message": "The thing with Dad at dinner? When he said 'that's cute' about your work and you got upset?"
+    },
+    {
+      "timestamp": "2024-11-26T10:50:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "I don't remember that. Dinner was fine."
+    },
+    {
+      "timestamp": "2024-11-26T10:52:00Z",
+      "sender": "You",
+      "recipient": "Sister Jess",
+      "message": "You literally called him condescending. He left the table."
+    },
+    {
+      "timestamp": "2024-11-26T10:55:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "I think you're misremembering. Nothing happened."
+    },
+    {
+      "timestamp": "2024-11-26T11:00:00Z",
+      "sender": "You",
+      "recipient": "Sister Jess",
+      "message": "Jess, I was sitting right there. He was crying. Mom had to go check on him."
+    },
+    {
+      "timestamp": "2024-11-26T11:05:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "Why are you trying to create drama? This is exactly what you always do."
+    },
+    {
+      "timestamp": "2024-11-26T11:07:00Z",
+      "sender": "You",
+      "recipient": "Sister Jess",
+      "message": "I'm not creating drama, I'm just concerned. It was uncomfortable for everyone."
+    },
+    {
+      "timestamp": "2024-11-26T11:10:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "There's nothing to be concerned about because nothing happened. Please stop."
+    },
+    {
+      "timestamp": "2024-11-26T14:20:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "Hey Dad, how are you doing? I know last night was tough."
+    },
+    {
+      "timestamp": "2024-11-26T16:30:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "I'm fine. What are you talking about?"
+    },
+    {
+      "timestamp": "2024-11-26T16:35:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "The thing at dinner with Jess? You seemed really upset."
+    },
+    {
+      "timestamp": "2024-11-26T16:40:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "There was no 'thing'. Dinner was great. Why are you stirring the pot?"
+    },
+    {
+      "timestamp": "2024-11-26T16:42:00Z",
+      "sender": "You",
+      "recipient": "Dad",
+      "message": "I'm not stirring anything. You were crying. I was worried about you."
+    },
+    {
+      "timestamp": "2024-11-26T16:45:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "I don't want to talk about this. There's nothing to talk about."
+    },
+    {
+      "timestamp": "2024-11-26T17:00:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "Mom, is Dad okay? He seems upset about what happened at dinner but won't talk about it."
+    },
+    {
+      "timestamp": "2024-11-26T17:15:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "Honey, I don't know what you think happened, but dinner was lovely. Everyone had a nice time."
+    },
+    {
+      "timestamp": "2024-11-26T17:18:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "You went to check on Dad in the bedroom because he was crying. I was there."
+    },
+    {
+      "timestamp": "2024-11-26T17:22:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "He just needed a moment. It was nothing. Why are you making a big deal out of this?"
+    },
+    {
+      "timestamp": "2024-11-26T17:25:00Z",
+      "sender": "You",
+      "recipient": "Mom",
+      "message": "I'm not making a big deal, I'm just trying to understand what happened because everyone seems upset but won't acknowledge it."
+    },
+    {
+      "timestamp": "2024-11-26T17:30:00Z",
+      "sender": "Mom",
+      "recipient": "You",
+      "message": "The only person making this a problem is YOU. Everyone else has moved on. Maybe you should too."
+    },
+    {
+      "timestamp": "2024-11-26T18:45:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "Mom said you've been texting everyone trying to start drama. Can you just drop this?"
+    },
+    {
+      "timestamp": "2024-11-26T18:50:00Z",
+      "sender": "You",
+      "recipient": "Sister Jess",
+      "message": "I'm not starting drama. I'm trying to understand why everyone is pretending nothing happened when it clearly did."
+    },
+    {
+      "timestamp": "2024-11-26T18:55:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "This is SO typical of you. Always analyzing everything, making everyone uncomfortable. Just LET IT GO."
+    },
+    {
+      "timestamp": "2024-11-26T19:00:00Z",
+      "sender": "You",
+      "recipient": "Sister Jess",
+      "message": "I'm not trying to make anyone uncomfortable. There was obvious tension and I thought maybe we should talk about it."
+    },
+    {
+      "timestamp": "2024-11-26T19:05:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "The only tension is what YOU'RE creating by bringing this up over and over."
+    },
+    {
+      "timestamp": "2024-11-26T19:10:00Z",
+      "sender": "Dad",
+      "recipient": "You",
+      "message": "Your sister is right. You're making everyone uncomfortable with this. Please stop."
+    },
+    {
+      "timestamp": "2024-11-26T19:20:00Z",
+      "sender": "You",
+      "recipient": "Friend Mike",
+      "message": "I feel like I'm losing my mind. Everyone is acting like nothing happened at dinner when there was CLEARLY a conflict. Now I'M the problem for even mentioning it."
+    },
+    {
+      "timestamp": "2024-11-26T19:22:00Z",
+      "sender": "Friend Mike",
+      "recipient": "You",
+      "message": "That's gaslighting bro. You're not crazy. You know what you saw."
+    },
+    {
+      "timestamp": "2024-11-26T19:30:00Z",
+      "sender": "You",
+      "recipient": "Sister Jess",
+      "message": "Can we talk on the phone? I'm clearly not explaining myself well over text."
+    },
+    {
+      "timestamp": "2024-11-26T19:35:00Z",
+      "sender": "Sister Jess",
+      "recipient": "You",
+      "message": "Fine. But I don't know what you expect me to say. Nothing happened."
+    }
+  ],
+  "context_notes": {
+    "pattern_established": "Clear conflict occurs → Family denies it → Protagonist becomes the problem for naming it",
+    "gaslighting_markers": "'I don't remember that', 'Nothing happened', 'You're creating drama', 'That's typical of you'",
+    "reality_observed": "Dad dismissed Jess → Jess snapped → Dad cried and left → Everyone witnessed it",
+    "reality_denied": "All participants now claim nothing happened",
+    "emotional_impact": "Protagonist questioning their own perception of reality",
+    "current_state": "Protagonist exhausted but willing to try one more conversation"
+  },
+  "roleplay_entry_point": "Phone call with sister where protagonist attempts to name the pattern without escalating further."
+}
