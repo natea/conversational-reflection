@@ -16,6 +16,8 @@ export function usePipecatSync() {
   const lastSavedUtteranceRef = useRef<string>('')
   // Track if we're in a new LLM response (to know when to reset bot utterance)
   const isNewBotResponseRef = useRef<boolean>(true)
+  // Accumulate finalized transcript segments for the current user turn
+  const finalizedSegmentsRef = useRef<string>('')
 
   // Select only the action functions we need (stable references)
   const setConnectionStatus = usePipecatStore((state) => state.setConnectionStatus)
@@ -85,6 +87,8 @@ export function usePipecatSync() {
         clearTimeout(userStoppedDebounceRef.current)
         userStoppedDebounceRef.current = null
       }
+      // Reset finalized segments when user starts a new turn
+      finalizedSegmentsRef.current = ''
       setUserSpeaking(true)
       setVoiceState('listening')
     }
@@ -119,6 +123,8 @@ export function usePipecatSync() {
         }
         setUserSpeaking(false)
         finalizeUserUtterance()
+        // Clear finalized segments for next turn
+        finalizedSegmentsRef.current = ''
         setVoiceState('processing')
         userStoppedDebounceRef.current = null
       }, 300)
@@ -154,10 +160,28 @@ export function usePipecatSync() {
       isNewBotResponseRef.current = true
     }
 
-    // User transcript (interim)
-    const handleUserTranscript = (data: { text: string }) => {
-      console.log('[PipecatSync] User transcript:', data.text)
-      updateCurrentUserUtterance(data.text)
+    // User transcript - handles both interim and final transcripts from Deepgram
+    // Deepgram sends: { text: string, final?: boolean }
+    // Interim transcripts replace each other, final transcripts should be accumulated
+    const handleUserTranscript = (data: { text: string; final?: boolean }) => {
+      console.log('[PipecatSync] User transcript:', data.text, 'final:', data.final)
+
+      if (data.final) {
+        // Final transcript: accumulate it with previous finalized segments
+        if (data.text.trim()) {
+          finalizedSegmentsRef.current = finalizedSegmentsRef.current
+            ? finalizedSegmentsRef.current + ' ' + data.text.trim()
+            : data.text.trim()
+        }
+        // Update display with accumulated final text
+        updateCurrentUserUtterance(finalizedSegmentsRef.current)
+      } else {
+        // Interim transcript: show accumulated finals + current interim
+        const fullText = finalizedSegmentsRef.current
+          ? finalizedSegmentsRef.current + ' ' + data.text
+          : data.text
+        updateCurrentUserUtterance(fullText)
+      }
     }
 
     // Bot transcript (interim) - ignore this, we use BotLlmText instead
