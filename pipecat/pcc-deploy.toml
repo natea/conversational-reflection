@@ -1,6 +1,6 @@
-agent_name = "quickstart"
-image = "your_username/quickstart:0.1"
-secret_set = "quickstart-secrets"
+agent_name = "ginger-voice-bot"
+image = "pierretokns/ginger:1"
+secret_set = "ginger-secrets"
 agent_profile = "agent-1x"
 
 # RECOMMENDED: Set an image pull secret:
@@ -9,3 +9,4 @@ agent_profile = "agent-1x"
 
 [scaling]
 	min_agents = 1
+	max_agents = 1

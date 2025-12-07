@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  ginger-bot-backend:
+    image: ghcr.io/natea/conversational-reflection/ginger-bot-backend:latest
+    container_name: ginger-bot-backend
+    ports:
+      - "7860:7860"
+    environment:
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - CARTESIA_API_KEY=${CARTESIA_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - NODE_ENV=production
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Optional: MCP Servers (if you want to run them in containers)
+  sable-mcp:
+    image: node:20-alpine
+    container_name: sable-mcp
+    working_dir: /app
+    volumes:
+      - ./src/mcp-servers/sable-mcp:/app
+      - /app/node_modules
+    command: npm start
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - ginger-bot-backend
+
+  private-journal-mcp:
+    image: node:20-alpine
+    container_name: private-journal-mcp
+    working_dir: /app
+    volumes:
+      - ./src/mcp-servers/private-journal-mcp:/app
+      - /app/node_modules
+    command: npm start
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - ginger-bot-backend
+
+  # Frontend (Next.js)
+  ginger-bot-frontend:
+    build:
+      context: ./ginger_rp
+      dockerfile: Dockerfile
+    container_name: ginger-bot-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:7860
+      - NEXT_PUBLIC_WS_URL=ws://localhost:7860
+    restart: unless-stopped
+    depends_on:
+      - ginger-bot-backend
+
+networks:
+  default:
+    name: ginger-bot-network
+
+volumes:
+  node_modules_sable:
+  node_modules_journal:

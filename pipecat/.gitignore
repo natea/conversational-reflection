@@ -27,3 +27,8 @@ claude-flow
 hive-mind-prompt-*.txt
 __pycache__/
 *.pyc
+
+# Environment variables with secrets
+.env
+.env.local
+.env.production
