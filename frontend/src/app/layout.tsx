@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { DM_Sans, Fraunces, JetBrains_Mono } from 'next/font/google'
 import { MainLayout } from '@/components/layouts/MainLayout'
 import { PipecatProvider } from '@/providers/PipecatProvider'
+import { VibeKanbanWrapper } from '@/components/dev/VibeKanbanWrapper'
 import '@/styles/globals.css'
 
 const dmSans = DM_Sans({
@@ -43,6 +44,7 @@ export default function RootLayout({
             {children}
           </MainLayout>
         </PipecatProvider>
+        <VibeKanbanWrapper />
       </body>
     </html>
   )
