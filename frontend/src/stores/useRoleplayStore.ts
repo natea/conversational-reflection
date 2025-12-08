@@ -69,6 +69,9 @@ interface RoleplayState {
   generateInsights: () => RoleplayInsights
   saveSession: () => void
   
+  // Voice transcript sync
+  syncFromTranscript: (transcript: Array<{role: 'user' | 'assistant', content: string, timestamp: Date}>) => void
+
   // Getters
   getSessionsBySkill: (skillId: string) => RoleplaySession[]
   getSkillProgress: (skillId: string) => {
@@ -482,11 +485,40 @@ export const useRoleplayStore = create<RoleplayState>((set, get) => ({
     }))
   },
   
+  // Sync messages from Pipecat voice transcript
+  syncFromTranscript: (transcript) => {
+    const session = get().currentSession
+    if (!session) return
+
+    // Convert Pipecat transcript to roleplay messages
+    const messages: RoleplayMessage[] = transcript.map((msg, idx) => ({
+      id: `voice_${idx}`,
+      role: msg.role === 'user' ? 'user' : 'partner',
+      content: msg.content,
+      timestamp: msg.timestamp
+    }))
+
+    // Prepend the initial partner message
+    const initialMessage: RoleplayMessage = {
+      id: '0',
+      role: 'partner',
+      content: `*${session.partnerName} is ready for the conversation.*`,
+      timestamp: session.startedAt
+    }
+
+    set((state) => ({
+      currentSession: state.currentSession ? {
+        ...state.currentSession,
+        messages: [initialMessage, ...messages]
+      } : null
+    }))
+  },
+
   // Get sessions by skill
   getSessionsBySkill: (skillId) => {
     return get().completedSessions.filter(s => s.skillId === skillId)
   },
-  
+
   // Get skill progress
   getSkillProgress: (skillId) => {
     return get().skillProgress[skillId] || null

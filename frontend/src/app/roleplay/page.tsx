@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRoleplayStore } from '@/stores/useRoleplayStore'
 import { useGingerStore } from '@/stores/useGingerStore'
+import { usePipecat } from '@/providers/PipecatProvider'
+import { usePipecatStore } from '@/stores/usePipecatStore'
 import { RoleplayCustomization } from '@/components/roleplay/RoleplayCustomization'
 import { RoleplayExperience } from '@/components/roleplay/RoleplayExperience'
 import { RoleplaySummary } from '@/components/roleplay/RoleplaySummary'
@@ -14,6 +16,8 @@ export default function RoleplayPage() {
   const [stage, setStage] = useState<RoleplayStage>('setup')
   const { startSession, endSession, currentSession, saveSession } = useRoleplayStore()
   const { addArtifact } = useGingerStore()
+  const { connect, disconnect } = usePipecat()
+  const { clearTranscript } = usePipecatStore()
 
   // Check if there's an active session
   useEffect(() => {
@@ -28,12 +32,19 @@ export default function RoleplayPage() {
     }
   }, [currentSession])
 
-  const handleStartSession = (config: Parameters<typeof startSession>[0]) => {
+  const handleStartSession = async (config: Parameters<typeof startSession>[0]) => {
     startSession(config)
+    clearTranscript()
+    try {
+      await connect()
+    } catch (err) {
+      console.error('[Roleplay] Failed to connect to voice:', err)
+    }
     setStage('practice')
   }
 
   const handleEndSession = () => {
+    disconnect()
     endSession()
     setStage('summary')
   }
