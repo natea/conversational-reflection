@@ -1,17 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const PIPECAT_WEBRTC_URL = process.env.PIPECAT_WEBRTC_URL || 'http://localhost:7860/api/offer'
+const PIPECAT_API_KEY = process.env.PIPECAT_API_KEY || ''
+
+// Check if we're connecting to Pipecat Cloud vs local
+const isCloudDeployment = PIPECAT_WEBRTC_URL.includes('pipecat.daily.co')
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    // Add authorization for Pipecat Cloud (Bearer token format)
+    if (PIPECAT_API_KEY && isCloudDeployment) {
+      headers['Authorization'] = `Bearer ${PIPECAT_API_KEY}`
+    }
+
+    // Format request body for Pipecat Cloud
+    const requestBody = isCloudDeployment
+      ? {
+          createDailyRoom: true,
+          dailyRoomProperties: { start_video_off: true },
+          body: body,
+        }
+      : body
+
     const response = await fetch(PIPECAT_WEBRTC_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      headers,
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
@@ -35,15 +55,23 @@ export async function POST(request: NextRequest) {
 }
 
 // PATCH handler for ICE candidate updates (used by Pipecat WebRTC transport)
+// Note: PATCH is only used for local development, not Pipecat Cloud
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    // Add authorization for Pipecat Cloud (Bearer token format)
+    if (PIPECAT_API_KEY && isCloudDeployment) {
+      headers['Authorization'] = `Bearer ${PIPECAT_API_KEY}`
+    }
+
     const response = await fetch(PIPECAT_WEBRTC_URL, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     })
 
