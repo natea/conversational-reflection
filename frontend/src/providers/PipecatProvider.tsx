@@ -4,9 +4,14 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 import { PipecatClient, RTVIEvent, RTVIMessage } from '@pipecat-ai/client-js'
 import { PipecatClientProvider as ReactProvider, PipecatClientAudio } from '@pipecat-ai/client-react'
 import { SmallWebRTCTransport } from '@pipecat-ai/small-webrtc-transport'
+import { DailyTransport } from '@pipecat-ai/daily-transport'
 import { useAudioDeviceStore } from '@/stores/useAudioDeviceStore'
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
+
+// Check if we're using Pipecat Cloud (which requires DailyTransport)
+const PIPECAT_WEBRTC_URL = process.env.NEXT_PUBLIC_PIPECAT_WEBRTC_URL || ''
+const isCloudDeployment = PIPECAT_WEBRTC_URL.includes('pipecat.daily.co')
 
 interface PipecatContextValue {
   client: PipecatClient | null
@@ -35,8 +40,12 @@ export function PipecatProvider({
 
   // Initialize client on mount
   useEffect(() => {
+    // Use DailyTransport for Pipecat Cloud, SmallWebRTCTransport for local
+    const transport = isCloudDeployment ? new DailyTransport() : new SmallWebRTCTransport()
+    console.log('[Pipecat] Using transport:', isCloudDeployment ? 'DailyTransport (Cloud)' : 'SmallWebRTCTransport (Local)')
+
     const pcClient = new PipecatClient({
-      transport: new SmallWebRTCTransport(),
+      transport,
       enableMic: true,
       enableCam: false,
       callbacks: {
