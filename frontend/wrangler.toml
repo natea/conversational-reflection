@@ -1,0 +1,9 @@
+name = "ginger"
+compatibility_date = "2024-12-01"
+pages_build_output_dir = ".next/static"
+
+[env.production]
+compatibility_date = "2024-12-01"
+
+[[env.production.vars]]
+NEXT_PUBLIC_PIPECAT_WEBRTC_URL = "https://api.pipecat.daily.co/v1/public/ginger/start"

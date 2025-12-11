@@ -143,11 +143,56 @@ export function PipecatProvider({
         }
       }
 
-      await client.connect({
-        webrtcRequestParams: {
-          endpoint: webrtcEndpoint,
-        },
-      })
+      // Different connect methods for cloud vs local
+      if (isCloudDeployment) {
+        // For Pipecat Cloud with DailyTransport, call the cloud API directly
+        console.log('[Pipecat] Fetching Daily.co room from cloud API...')
+        
+        const cloudApiUrl = process.env.NEXT_PUBLIC_PIPECAT_WEBRTC_URL || PIPECAT_WEBRTC_URL
+        const apiKey = process.env.NEXT_PUBLIC_PIPECAT_API_KEY
+        
+        if (!apiKey) {
+          throw new Error('NEXT_PUBLIC_PIPECAT_API_KEY not set')
+        }
+        
+        const response = await fetch(cloudApiUrl, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            createDailyRoom: true,
+            dailyRoomProperties: { start_video_off: true },
+            body: {},
+          }),
+        })
+        
+        if (!response.ok) {
+          throw new Error(`Failed to get Daily room: ${response.status} ${response.statusText}`)
+        }
+        
+        const roomData = await response.json()
+        console.log('[Pipecat] Got Daily room:', { 
+          room: roomData.dailyRoom?.slice(0, 50) + '...',
+          hasToken: !!roomData.dailyToken,
+          sessionId: roomData.sessionId 
+        })
+        
+        // Connect using Daily.co room URL and token
+        // Note: Daily.co expects 'url' and 'token', not 'dailyUrl' and 'dailyToken'
+        await client.connect({
+          url: roomData.dailyRoom,
+          token: roomData.dailyToken,
+        })
+      } else {
+        // For local with SmallWebRTCTransport, use the proxy endpoint
+        await client.connect({
+          webrtcRequestParams: {
+            endpoint: webrtcEndpoint,
+          },
+        })
+      }
 
       // Debug: Log the actual microphone being used after connection
       console.log('[Pipecat] Connected. Checking active microphone...')

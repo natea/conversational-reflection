@@ -55,18 +55,20 @@ export async function POST(request: NextRequest) {
 }
 
 // PATCH handler for ICE candidate updates (used by Pipecat WebRTC transport)
-// Note: PATCH is only used for local development, not Pipecat Cloud
+// Note: PATCH is only used for local SmallWebRTC, not Pipecat Cloud (which uses Daily.co)
 export async function PATCH(request: NextRequest) {
   try {
+    // Pipecat Cloud uses Daily.co and doesn't support PATCH for ICE candidates
+    // Return success immediately to avoid 404 errors
+    if (isCloudDeployment) {
+      console.log('[PATCH] Skipping ICE candidate update for Pipecat Cloud (handled by Daily.co)')
+      return NextResponse.json({ status: 'success', message: 'ICE candidates handled by Daily.co' })
+    }
+
     const body = await request.json()
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-    }
-
-    // Add authorization for Pipecat Cloud (Bearer token format)
-    if (PIPECAT_API_KEY && isCloudDeployment) {
-      headers['Authorization'] = `Bearer ${PIPECAT_API_KEY}`
     }
 
     const response = await fetch(PIPECAT_WEBRTC_URL, {

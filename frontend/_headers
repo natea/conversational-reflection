@@ -1,0 +1,10 @@
+# Cloudflare Pages build configuration
+version = 1
+
+[build]
+command = "npm run build"
+destination = ".next"
+
+[env.production.vars]
+NEXT_PUBLIC_PIPECAT_WEBRTC_URL = "https://api.pipecat.daily.co/v1/public/ginger/start"
+NODE_ENV = "production"

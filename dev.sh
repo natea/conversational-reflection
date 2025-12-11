@@ -187,9 +187,25 @@ stop_backend() {
         local pid=$(cat "$PID_DIR/backend.pid")
         if kill -0 "$pid" 2>/dev/null; then
             log_info "Stopping backend (PID: $pid)..."
-            kill "$pid" 2>/dev/null || true
-            # Also kill any child processes
-            pkill -P "$pid" 2>/dev/null || true
+            
+            # Kill all child processes recursively (uv spawns python which may spawn more)
+            pkill -TERM -P "$pid" 2>/dev/null || true
+            sleep 0.5
+            
+            # Kill the main process
+            kill -TERM "$pid" 2>/dev/null || true
+            sleep 0.5
+            
+            # Force kill if still running
+            if kill -0 "$pid" 2>/dev/null; then
+                log_warn "Process still running, force killing..."
+                pkill -KILL -P "$pid" 2>/dev/null || true
+                kill -KILL "$pid" 2>/dev/null || true
+            fi
+            
+            # Extra cleanup: kill any Python processes running bot.py
+            pkill -f "bot.py --transport webrtc" 2>/dev/null || true
+            
             rm -f "$PID_DIR/backend.pid"
             log_success "Backend stopped"
         else
@@ -197,7 +213,14 @@ stop_backend() {
             rm -f "$PID_DIR/backend.pid"
         fi
     else
-        log_warn "Backend not running"
+        # Even if no PID file, try to kill any stray bot.py processes
+        if pgrep -f "bot.py --transport webrtc" > /dev/null 2>&1; then
+            log_warn "Found running bot.py processes without PID file, killing them..."
+            pkill -f "bot.py --transport webrtc" 2>/dev/null || true
+            log_success "Stray processes killed"
+        else
+            log_warn "Backend not running"
+        fi
     fi
 }
 
