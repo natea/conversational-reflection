@@ -1,9 +1,11 @@
 name = "ginger"
 compatibility_date = "2024-12-01"
-pages_build_output_dir = ".next/static"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
 
 [env.production]
 compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
 
-[[env.production.vars]]
-NEXT_PUBLIC_PIPECAT_WEBRTC_URL = "https://api.pipecat.daily.co/v1/public/ginger/start"
+# Environment variables are set in Cloudflare Dashboard
+# NEXT_PUBLIC_* vars are baked in at build time, not runtime
