@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'edge'
+
 const PIPECAT_WEBRTC_URL = process.env.PIPECAT_WEBRTC_URL || 'http://localhost:7860/api/offer'
 const PIPECAT_API_KEY = process.env.PIPECAT_API_KEY || ''
 
