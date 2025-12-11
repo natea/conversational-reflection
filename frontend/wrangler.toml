@@ -1,0 +1,11 @@
+name = "ginger"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[env.production]
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables are set in Cloudflare Dashboard
+# NEXT_PUBLIC_* vars are baked in at build time, not runtime

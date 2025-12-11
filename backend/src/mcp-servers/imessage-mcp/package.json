@@ -1,0 +1,35 @@
+{
+  "name": "imessage-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for iMessage integration using imessage-kit",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "imessage",
+    "model-context-protocol"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "better-sqlite3": "^11.0.0"
+  },
+  "optionalDependencies": {
+    "@photon-ai/imessage-kit": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

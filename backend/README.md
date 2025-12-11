@@ -96,9 +96,9 @@ Transform your local bot into a production-ready service. Pipecat Cloud handles 
 The `pcc-deploy.toml` file tells Pipecat Cloud how to run your bot. **Update the image field** with your Docker Hub username by editing `pcc-deploy.toml`.
 
 ```ini
-agent_name = "quickstart"
-image = "YOUR_DOCKERHUB_USERNAME/quickstart:0.1"  # 👈 Update this line
-secret_set = "quickstart-secrets"
+agent_name = "ginger"
+image = "natea/ginger:latest"  # 👈 Update this line
+secret_set = "ginger-secrets"
 
 [scaling]
 	min_agents = 1
@@ -128,7 +128,7 @@ You'll be presented with a link that you can click to authenticate your client.
 Upload your API keys to Pipecat Cloud's secure storage:
 
 ```bash
-pipecat cloud secrets set quickstart-secrets --file .env
+pipecat cloud secrets set ginger-secrets --file .env
 ```
 
 This creates a secret set called `quickstart-secrets` (matching your TOML file) and uploads all your API keys from `.env`.

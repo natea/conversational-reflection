@@ -584,10 +584,18 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         tts._settings["generation_config"] = new_config
         logger.debug(f"🎭 Updated TTS generation_config: emotion={emotion}, speed={speed}, volume={volume}")
 
-    llm = OpenAILLMService(
-        api_key=os.getenv("OPENAI_API_KEY"),
-        model="gpt-4o",  # Use gpt-4o for better function calling
-    )
+    # Allow overriding the OpenAI-compatible endpoint (e.g., z.ai) via env
+    # Configure model + base_url selection. Supports separate Z.AI GLM and Coding endpoints.
+    model_name = os.getenv("OPENAI_MODEL", "gpt-4o")
+    llm_kwargs = {
+        "api_key": os.getenv("OPENAI_API_KEY"),
+        "model": model_name,
+    }
+    openai_base_url = os.getenv("OPENAI_BASE_URL")
+    if openai_base_url:
+        llm_kwargs["base_url"] = openai_base_url
+    
+    llm = OpenAILLMService(**llm_kwargs)
 
     # Initialize MCP clients with graceful degradation
     available, failed, all_tools = await initialize_mcp_clients(llm)
